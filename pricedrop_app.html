@@ -8,6 +8,9 @@
 <meta name="theme-color" content="#f0faf2">
 <meta name="color-scheme" content="light">
 <meta name="mobile-web-app-capable" content="yes">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <link rel="manifest" href="/local/pricedrop_manifest.json">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%2322c55e'/><stop offset='100%' stop-color='%23ff8c2e'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><text x='50' y='42' text-anchor='middle' font-size='28' font-weight='bold' fill='white' font-family='system-ui'>DEEF</text><text x='50' y='72' text-anchor='middle' font-size='22' fill='rgba(255,255,255,.8)' font-family='system-ui'>DROP</text></svg>">
 <title>Deef's PriceDrop</title>
@@ -174,7 +177,7 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;height:100dvh;ove
 <div class="dl" id="dl"></div>
 
 <div class="ftr">
-  <span>v__APP_VERSION__</span>
+  <span id="ver">v__APP_VERSION__</span>
   <button onclick="document.getElementById('clm').style.display='flex'">Changelog</button>
   <span id="cnt">0 deals</span>
 </div>
@@ -185,21 +188,26 @@ body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;height:100dvh;ove
   <div class="clm-box">
     <button class="clm-x" onclick="document.getElementById('clm').style.display='none'">x</button>
     <h3>Changelog</h3>
-    <p>v2.5 — 3 apr 2026</p>
+    <p>v3.0.0 — 3 apr 2026</p>
+    <ul>
+      <li>Cache-busting: pull-to-refresh haalt altijd nieuwste versie</li>
+      <li>iBood scanner: alle pagina's automatisch doorlopen</li>
+      <li>Semver versienummers (3.0.0 formaat)</li>
+      <li>Landvlaggen bij deals</li>
+      <li>Duits naar Nederlands vertaling</li>
+      <li>China/AliExpress deals gefilterd</li>
+      <li>Deals ouder dan 48u automatisch opgeruimd</li>
+    </ul>
+    <p>v2.5.0 — 3 apr 2026</p>
     <ul>
       <li>Rebranding: Deef's PriceDrop</li>
-      <li>Groen + oranje kleurenschema</li>
       <li>PIN-login (6 cijfers, 4u sessie, 5 pogingen/lockout)</li>
-      <li>iBood alle aanbiedingen</li>
-      <li>Verzendkosten per shop in winstberekening</li>
-      <li>Kortingscode-scraper (Pepper + acties.nl)</li>
       <li>Nep-filter + alleen-echt filter</li>
-      <li>Verzamel-deals gefilterd</li>
       <li>Geforceerd licht thema (geen dark mode)</li>
     </ul>
-    <p>v2.0 — 3 apr 2026</p>
+    <p>v2.0.0 — 3 apr 2026</p>
     <ul><li>12+ shops, prijsverificatie, Marktplaats check</li></ul>
-    <p>v1.0 — 3 apr 2026</p>
+    <p>v1.0.0 — 3 apr 2026</p>
     <ul><li>Eerste versie: 5 shops, Windows notificaties</li></ul>
   </div>
 </div>
@@ -354,7 +362,10 @@ function render(){
 }
 
 initPin();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('/local/pricedrop_sw.js').catch(()=>{});
+if('serviceWorker' in navigator){
+  const swPath=location.hostname.includes('github.io')?'/pricedrop/pricedrop_sw.js':'/local/pricedrop_sw.js';
+  navigator.serviceWorker.register(swPath).then(reg=>{reg.update()}).catch(()=>{});
+}
 </script>
 </body>
 </html>

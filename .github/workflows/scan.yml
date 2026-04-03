@@ -41,8 +41,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add docs/
+          # Verwijder ibood_deals.json als het verwerkt is door scanner
+          if [ ! -f ibood_deals.json ]; then
+            git rm -f ibood_deals.json 2>/dev/null || true
+          fi
+          git add -A ibood_deals.json 2>/dev/null || true
           if git diff --staged --quiet; then
-            echo "Geen wijzigingen in docs/"
+            echo "Geen wijzigingen"
           else
             git commit -m "Update deals data [$(date +'%d-%m-%Y %H:%M')]"
             git push

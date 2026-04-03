@@ -10,6 +10,7 @@ Gebruik:
 import sys
 import os
 import time
+import json
 from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -271,6 +272,25 @@ def run_scan():
 
             except Exception as e:
                 print(f"[{scraper_name}] FOUT: {e}")
+
+        # === STAP 1b: Importeer iBood bookmarklet deals (indien aanwezig) ===
+        ibood_json_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ibood_deals.json")
+        if os.path.exists(ibood_json_path):
+            try:
+                with open(ibood_json_path, "r", encoding="utf-8") as f:
+                    ibood_deals = json.load(f)
+                if isinstance(ibood_deals, list) and ibood_deals:
+                    print(f"\n--- iBOOD BOOKMARKLET ---")
+                    print(f"[iBood] {len(ibood_deals)} deals uit ibood_deals.json")
+                    filtered_ibood = filter_deals(ibood_deals, "ibood")
+                    print(f"[iBood] {len(filtered_ibood)} deals na filter")
+                    all_deals.extend(filtered_ibood)
+                    shops_scanned += 1
+                # Verwijder het bestand na import
+                os.remove(ibood_json_path)
+                print(f"[iBood] ibood_deals.json verwerkt en verwijderd")
+            except Exception as e:
+                print(f"[iBood] Fout bij importeren ibood_deals.json: {e}")
 
         # === STAP 2: Sla deals op ===
         for deal in all_deals:
