@@ -20,6 +20,7 @@ PEPPER_URLS = [
     "https://nl.pepper.com/nieuw",           # Nieuwste deals
     "https://nl.pepper.com/heetste",          # Populairste deals
     "https://nl.pepper.com/groep/prijsfout",  # Specifiek prijsfouten
+    "https://nl.pepper.com/search?q=ibood",   # iBood deals via Pepper
 ]
 
 

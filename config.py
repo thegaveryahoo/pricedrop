@@ -60,7 +60,7 @@ ACTIVE_SCRAPERS = [
     "megekko",
     "bcc",
     "wehkamp",
-    "ibood",
+    "ibood",  # Kan geblokkeerd worden door Akamai, maar proberen
     # DE shops
     "amazon_de",
     "saturn",

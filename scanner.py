@@ -111,13 +111,28 @@ _BLOCKED_SOURCES = [
     'aliexpress', 'ali express', 'banggood', 'gearbest', 'geekbuying',
     'tomtop', 'cafago', 'lightinthebox', 'wish.com', 'temu', 'shein',
     'dhgate', 'miniinthebox', 'dealextreme', 'dx.com', 'goboo',
+    'joom', 'geekmaxi', 'gshopper', 'hekka',
+]
+
+# URLs die op China-shops wijzen
+_BLOCKED_URLS = [
+    'aliexpress.com', 'aliexpress.ru', 'ali.ski', 'a.]iexpress',
+    'banggood.com', 'gearbest.com', 'temu.com', 'shein.com',
+    'dhgate.com', 'wish.com', 'lightinthebox.com',
 ]
 
 
 def is_china_deal(deal):
     """Check of een deal van een Chinese/niet-EU bron komt."""
-    text = f"{deal.get('shop', '')} {deal.get('product_name', '')} {deal.get('url', '')}".lower()
-    return any(blocked in text for blocked in _BLOCKED_SOURCES)
+    text = f"{deal.get('shop', '')} {deal.get('product_name', '')}".lower()
+    url = deal.get('url', '').lower()
+    # Check merchant/titel
+    if any(blocked in text for blocked in _BLOCKED_SOURCES):
+        return True
+    # Check URL
+    if any(blocked in url for blocked in _BLOCKED_URLS):
+        return True
+    return False
 
 
 # Woorden die duiden op verzamel-deals / niet-specifieke producten
@@ -191,8 +206,24 @@ def filter_deals(deals, scraper_name=""):
     return filtered
 
 
+def cleanup_old_deals(max_age_hours=48):
+    """Verwijder deals ouder dan max_age_hours uit de database."""
+    from database import get_connection
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("DELETE FROM deals WHERE found_at < datetime('now', ?)", (f"-{max_age_hours} hours",))
+    deleted = c.rowcount
+    conn.commit()
+    conn.close()
+    if deleted:
+        print(f"[Cleanup] {deleted} verlopen deals verwijderd (ouder dan {max_age_hours}u)")
+
+
 def run_scan():
     """Voer een volledige scan uit van alle actieve scrapers + prijsverificatie."""
+    # Ruim oude deals op VOOR de scan
+    cleanup_old_deals(48)
+
     scan_id = start_scan_log()
 
     print(f"\n{'='*60}")
