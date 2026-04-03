@@ -1,8 +1,8 @@
-// PriceDrop Service Worker — v1
+// PriceDrop Service Worker — v2
 // Cachet NOOIT de HTML — pull-to-refresh haalt altijd de nieuwste versie op.
 // Cachet alleen statische assets (manifest, icoon).
 
-const CACHE_NAME = 'pricedrop-v1';
+const CACHE_NAME = 'pricedrop-v2';
 const STATIC_ASSETS = [
   '/pricedrop/pricedrop_manifest.json',
   '/pricedrop/pricedrop_icon.svg',
@@ -27,9 +27,14 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
-  // NOOIT HTML cachen — altijd netwerk (zorgt dat pull-to-refresh werkt)
-  if (url.pathname.endsWith('.html')) {
-    event.respondWith(fetch(event.request));
+  // NOOIT HTML cachen — altijd netwerk met cache-bust
+  if (url.pathname.endsWith('.html') || url.pathname.endsWith('/') || url.pathname === '/pricedrop' || url.pathname === '/pricedrop/') {
+    event.respondWith(
+      fetch(event.request.url + (event.request.url.includes('?') ? '&' : '?') + '_cb=' + Date.now(), {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+      }).catch(() => fetch(event.request))
+    );
     return;
   }
 
