@@ -65,22 +65,26 @@ def deploy():
 
     print(f"[GitHub] docs/index.html geschreven ({len(html)} bytes)")
 
-    # Git add, commit, push
-    try:
-        os.chdir(PROJECT_DIR)
-        subprocess.run(["git", "add", "docs/"], check=True, capture_output=True)
-        result = subprocess.run(["git", "status", "--porcelain", "docs/"], capture_output=True, text=True)
-        if result.stdout.strip():
-            subprocess.run(["git", "commit", "-m", "Update deals data"], check=True, capture_output=True)
-            subprocess.run(["git", "push"], check=True, capture_output=True)
-            print("[GitHub] Gepusht naar GitHub Pages!")
-            print("[GitHub] URL: https://thegaveryahoo.github.io/pricedrop/")
-        else:
-            print("[GitHub] Geen wijzigingen om te pushen")
-    except subprocess.CalledProcessError as e:
-        print(f"[GitHub] Git fout: {e.stderr if e.stderr else e}")
-    except Exception as e:
-        print(f"[GitHub] Fout: {e}")
+    # Op GitHub Actions doet de workflow zelf git add/commit/push
+    if os.environ.get("GITHUB_ACTIONS"):
+        print("[GitHub] Draait op GitHub Actions — git push wordt door workflow gedaan")
+    else:
+        # Lokaal: probeer git push
+        try:
+            os.chdir(PROJECT_DIR)
+            subprocess.run(["git", "add", "docs/"], check=True, capture_output=True)
+            result = subprocess.run(["git", "status", "--porcelain", "docs/"], capture_output=True, text=True)
+            if result.stdout.strip():
+                subprocess.run(["git", "commit", "-m", "Update deals data"], check=True, capture_output=True)
+                subprocess.run(["git", "push"], check=True, capture_output=True)
+                print("[GitHub] Gepusht naar GitHub Pages!")
+                print("[GitHub] URL: https://thegaveryahoo.github.io/pricedrop/")
+            else:
+                print("[GitHub] Geen wijzigingen om te pushen")
+        except subprocess.CalledProcessError as e:
+            print(f"[GitHub] Git fout: {e.stderr if e.stderr else e}")
+        except Exception as e:
+            print(f"[GitHub] Fout: {e}")
 
     return True
 
