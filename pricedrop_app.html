@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f0faf2">
+<meta name="color-scheme" content="light">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/local/pricedrop_manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%2322c55e'/><stop offset='100%' stop-color='%23ff8c2e'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><text x='50' y='42' text-anchor='middle' font-size='28' font-weight='bold' fill='white' font-family='system-ui'>DEEF</text><text x='50' y='72' text-anchor='middle' font-size='22' fill='rgba(255,255,255,.8)' font-family='system-ui'>DROP</text></svg>">
+<title>Deef's PriceDrop</title>
+<style>
+:root{color-scheme:light!important}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:#f0faf2!important;color:#1a2e1f!important}
+@media(prefers-color-scheme:dark){html,body{background:#f0faf2!important;color:#1a2e1f!important}input,button{color-scheme:light}}
+body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;height:100dvh;overflow:hidden}
+
+/* === PIN SCREEN === */
+.pin-s{position:fixed;inset:0;background:linear-gradient(160deg,#f0faf2 0%,#fff6ed 100%);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:30px 20px}
+.pin-s.hidden{display:none}
+.pin-logo{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:8px}
+.pin-logo svg{width:64px;height:64px;filter:drop-shadow(0 4px 12px rgba(34,197,94,.25))}
+.pin-logo b{font-size:20px;color:#1a2e1f}
+.pin-logo small{font-size:11px;color:#6b8f72}
+.pin-lbl{font-size:14px;color:#6b8f72;font-weight:600;text-align:center}
+.pin-dots{display:flex;gap:12px;margin:4px 0}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid #c8e0cc;background:transparent;transition:.15s}
+.pin-dot.ok{background:#22c55e;border-color:#22c55e}
+.pin-dot.err{background:#e53e3e;border-color:#e53e3e}
+.pin-err{font-size:12px;color:#e53e3e;font-weight:600;min-height:16px}
+.pin-err.h{visibility:hidden}
+.pin-pad{display:grid;grid-template-columns:repeat(3,68px);gap:8px}
+.pin-b{width:68px;height:52px;border-radius:12px;border:1.5px solid #c8e0cc;background:#fff;color:#1a2e1f;font-size:22px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pin-b:active{background:#e8f5ea;transform:scale(.93)}
+
+/* === MAIN APP === */
+.app{display:none;height:100dvh;flex-direction:column;overflow:hidden}
+.app.show{display:flex}
+
+/* Header */
+.hdr{padding:10px 14px 8px;background:rgba(240,250,242,.97);backdrop-filter:blur(12px);border-bottom:2px solid #c8e0cc;flex-shrink:0}
+.h1{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.logo{display:flex;align-items:center;gap:7px}
+.logo svg{width:26px;height:26px}
+.logo b{font-size:16px;color:#1a2e1f}
+.logo b span{color:#ff8c2e}
+.sp{font-size:11px;padding:3px 9px;border-radius:14px;display:flex;align-items:center;gap:4px;font-weight:600}
+.sp .d{width:7px;height:7px;border-radius:50%}
+.sp-ok{background:#e8f5ea;color:#22c55e}.sp-ok .d{background:#22c55e}
+.sp-w{background:#fff0e0;color:#b87a00}.sp-w .d{background:#ff8c2e}
+.sp-x{background:#fff0ef;color:#e53e3e}.sp-x .d{background:#e53e3e}
+
+.search{margin-bottom:6px}
+.search input{width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid #c8e0cc;background:#fff;font-size:14px;color:#1a2e1f;outline:none}
+.search input:focus{border-color:#22c55e}
+.search input::placeholder{color:#a0c0a6}
+
+.sliders{display:flex;flex-direction:column;gap:4px}
+.sl{display:flex;align-items:center;gap:6px}
+.sl label{font-size:11px;color:#6b8f72;font-weight:700;min-width:50px}
+.sl input[type=range]{-webkit-appearance:none;flex:1;height:4px;border-radius:2px;background:#c8e0cc;outline:none}
+.sl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#ff8c2e);box-shadow:0 2px 6px rgba(34,197,94,.3)}
+.sv{font-size:14px;font-weight:800;color:#22c55e;min-width:38px;text-align:right}
+
+/* Filters */
+.fbar{display:flex;gap:5px;padding:6px 14px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;border-bottom:1.5px solid #c8e0cc;background:#f7fcf8}
+.fbar::-webkit-scrollbar{display:none}
+.fb{flex-shrink:0;padding:6px 12px;border-radius:16px;font-size:12px;font-weight:600;border:1.5px solid #c8e0cc;background:#fff;color:#6b8f72;cursor:pointer;white-space:nowrap}
+.fb.on{background:#22c55e;color:#fff;border-color:#22c55e}
+.fb i{font-style:normal;font-size:9px;opacity:.8;margin-left:2px}
+.sep{width:1.5px;background:#c8e0cc;flex-shrink:0;margin:4px 0}
+
+/* Deal list */
+.dl{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 14px 28px;display:flex;flex-direction:column;gap:7px}
+
+/* Deal card */
+.dc{background:#fff;border-radius:14px;padding:10px 12px;border:1.5px solid #d4e8d6;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:3px;box-shadow:0 1px 4px rgba(34,100,50,.06)}
+.dc:active{opacity:.85;transform:scale(.98);transition:.1s}
+.dc.fake{opacity:.4}
+.dc.veri{border-left:3px solid #22c55e}
+.dc1{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.dc-n{font-size:13px;font-weight:600;line-height:1.3;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.badge{flex-shrink:0;padding:3px 8px;border-radius:8px;font-size:14px;font-weight:800}
+.b-h{background:#fff0ef;color:#e53e3e}
+.b-w{background:#fff0e0;color:#b87a00}
+.b-c{background:#e8f0ff;color:#2b7de9}
+.dc2{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap}
+.dc-p{font-size:17px;font-weight:800;color:#1a2e1f}
+.dc-was{font-size:11px;color:#a0c0a6;text-decoration:line-through}
+.dc-shop{font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;background:#f0faf2;color:#6b8f72;text-transform:uppercase}
+.dc3{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:5px}
+.tag-g{color:#16a34a;background:#e8f5ea}
+.tag-r{color:#e53e3e;background:#fff0ef}
+.tag-b{color:#2b7de9;background:#e8f0ff}
+.tag-m{color:#6b8f72;background:#f0faf2}
+.tag-c{color:#8b5cf6;background:#f3f0ff}
+.dc-t{font-size:9px;color:#a0c0a6;margin-left:auto}
+.empty{text-align:center;padding:40px 16px;color:#a0c0a6}
+.empty b{font-size:28px;display:block;margin-bottom:6px;opacity:.3}
+
+/* Footer */
+.ftr{flex-shrink:0;background:rgba(240,250,242,.97);backdrop-filter:blur(8px);border-top:1.5px solid #c8e0cc;padding:4px 14px;display:flex;justify-content:space-between;align-items:center}
+.ftr span,.ftr button{font-size:10px;color:#a0c0a6}
+.ftr button{background:none;border:none;cursor:pointer;color:#22c55e;font-weight:600}
+
+/* Changelog */
+.clm{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;align-items:flex-end;justify-content:center}
+.clm-box{background:#fff;border-radius:16px 16px 0 0;padding:20px;max-width:400px;width:100%;max-height:65vh;overflow-y:auto}
+.clm-box h3{font-size:16px;margin-bottom:12px;color:#1a2e1f}
+.clm-box p{font-weight:700;color:#22c55e;font-size:13px;margin:8px 0 4px}
+.clm-box ul{font-size:12px;color:#6b8f72;padding-left:16px;line-height:1.6;margin-bottom:8px}
+.clm-x{background:none;border:none;font-size:22px;cursor:pointer;color:#a0c0a6;float:right}
+@media(min-width:500px){body{max-width:420px;margin:0 auto}}
+</style>
+</head>
+<body>
+
+<!-- PIN SCREEN -->
+<div class="pin-s" id="pin-s">
+  <div class="pin-logo">
+    <svg viewBox="0 0 100 100"><defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#ff8c2e"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="url(#pg)"/><text x="50" y="42" text-anchor="middle" font-size="28" font-weight="bold" fill="white" font-family="system-ui">DEEF</text><text x="50" y="72" text-anchor="middle" font-size="22" fill="rgba(255,255,255,.8)" font-family="system-ui">DROP</text></svg>
+    <b>Deef's PriceDrop</b>
+    <small>Prijsfout-detector</small>
+  </div>
+  <div class="pin-lbl" id="pin-lbl">Voer je PIN in</div>
+  <div class="pin-dots" id="pin-dots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+  <div class="pin-err h" id="pin-err">Onjuiste PIN</div>
+  <div class="pin-pad">
+    <button class="pin-b" onclick="pinPress('1')">1</button><button class="pin-b" onclick="pinPress('2')">2</button><button class="pin-b" onclick="pinPress('3')">3</button>
+    <button class="pin-b" onclick="pinPress('4')">4</button><button class="pin-b" onclick="pinPress('5')">5</button><button class="pin-b" onclick="pinPress('6')">6</button>
+    <button class="pin-b" onclick="pinPress('7')">7</button><button class="pin-b" onclick="pinPress('8')">8</button><button class="pin-b" onclick="pinPress('9')">9</button>
+    <button class="pin-b" style="visibility:hidden"></button><button class="pin-b" onclick="pinPress('0')">0</button><button class="pin-b" onclick="pinBack()">&#9003;</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="app">
+<div class="hdr">
+  <div class="h1">
+    <div class="logo">
+      <svg viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#ff8c2e"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="url(#g)"/><text x="50" y="42" text-anchor="middle" font-size="28" font-weight="bold" fill="white" font-family="system-ui">D</text><text x="50" y="72" text-anchor="middle" font-size="20" fill="rgba(255,255,255,.8)" font-family="system-ui">DROP</text></svg>
+      <b>Deef's <span>PriceDrop</span></b>
+    </div>
+    <div class="sp sp-ok" id="sp"><div class="d"></div><span id="st">-</span></div>
+  </div>
+  <div class="search"><input type="text" id="q" placeholder="Zoek product..."></div>
+  <div class="sliders">
+    <div class="sl"><label>Korting</label><input type="range" id="thr" min="10" max="90" step="5" value="40"><span class="sv" id="thrV">40%</span></div>
+    <div class="sl"><label>Min prijs</label><input type="range" id="mp" min="0" max="500" step="25" value="0"><span class="sv" id="mpV">€0</span></div>
+  </div>
+</div>
+
+<div class="fbar" id="fb">
+  <button class="fb" data-h="24">24u</button><button class="fb" data-h="48">48u</button><button class="fb on" data-h="168">7d</button><button class="fb" data-h="720">30d</button>
+  <div class="sep"></div>
+  <button class="fb on" data-s="discount_percent">Korting</button><button class="fb" data-s="mp_profit">MP winst</button><button class="fb" data-s="current_price">Prijs</button><button class="fb" data-s="found_at">Nieuw</button>
+  <div class="sep"></div>
+  <button class="fb on" id="hideNep" data-tog="nep">Nep weg</button><button class="fb" data-tog="veri">Alleen echt</button>
+</div>
+
+<div class="dl" id="dl"></div>
+
+<div class="ftr">
+  <span>v__APP_VERSION__</span>
+  <button onclick="document.getElementById('clm').style.display='flex'">Changelog</button>
+  <span id="cnt">0 deals</span>
+</div>
+</div><!-- /app -->
+
+<!-- CHANGELOG -->
+<div class="clm" id="clm" onclick="if(event.target===this)this.style.display='none'">
+  <div class="clm-box">
+    <button class="clm-x" onclick="document.getElementById('clm').style.display='none'">x</button>
+    <h3>Changelog</h3>
+    <p>v2.5 — 3 apr 2026</p>
+    <ul>
+      <li>Rebranding: Deef's PriceDrop</li>
+      <li>Groen + oranje kleurenschema</li>
+      <li>PIN-login (6 cijfers, 4u sessie, 5 pogingen/lockout)</li>
+      <li>iBood alle aanbiedingen</li>
+      <li>Verzendkosten per shop in winstberekening</li>
+      <li>Kortingscode-scraper (Pepper + acties.nl)</li>
+      <li>Nep-filter + alleen-echt filter</li>
+      <li>Verzamel-deals gefilterd</li>
+      <li>Geforceerd licht thema (geen dark mode)</li>
+    </ul>
+    <p>v2.0 — 3 apr 2026</p>
+    <ul><li>12+ shops, prijsverificatie, Marktplaats check</li></ul>
+    <p>v1.0 — 3 apr 2026</p>
+    <ul><li>Eerste versie: 5 shops, Windows notificaties</li></ul>
+  </div>
+</div>
+
+<script id="dd" type="application/json">__DEAL_DATA__</script>
+<script>
+// ===================== PIN SYSTEM =====================
+const PD_HASH='pd_pin_hash',PD_TRIES='pd_pin_tries',PD_LOCK='pd_pin_lock',PD_UNLOCK='pd_pin_unlock';
+const PIN_SESSION=4*60*60*1000,MAX_TRIES=5,LOCKOUT=15*60*1000;
+let pinBuf='',pinMode='enter',pinNew='';
+
+async function hashPin(p){
+  const d=new TextEncoder().encode('deef-pricedrop-2026-'+p);
+  const b=await crypto.subtle.digest('SHA-256',d);
+  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+function getHash(){return localStorage.getItem(PD_HASH)}
+function isLocked(){return Date.now()<+(localStorage.getItem(PD_LOCK)||0)}
+function lockMins(){return Math.ceil((+(localStorage.getItem(PD_LOCK)||0)-Date.now())/60000)}
+function recFail(){
+  const t=+(localStorage.getItem(PD_TRIES)||0)+1;
+  if(t>=MAX_TRIES){localStorage.setItem(PD_LOCK,''+(Date.now()+LOCKOUT));localStorage.removeItem(PD_TRIES);return true}
+  localStorage.setItem(PD_TRIES,''+t);return false;
+}
+function clrFail(){localStorage.removeItem(PD_TRIES);localStorage.removeItem(PD_LOCK)}
+
+function initPin(){
+  if(Date.now()<+(localStorage.getItem(PD_UNLOCK)||0)){showApp();return}
+  if(!getHash()){pinMode='set-new';document.getElementById('pin-lbl').textContent='Kies een PIN van 6 cijfers'}
+  else{pinMode='enter';document.getElementById('pin-lbl').textContent='Voer je PIN in'}
+}
+
+function pinPress(d){
+  if(isLocked()){document.getElementById('pin-lbl').textContent=`Geblokkeerd — ${lockMins()} min`;return}
+  if(pinBuf.length>=6)return;
+  pinBuf+=d;renderDots();
+  document.getElementById('pin-err').classList.add('h');
+  if(pinBuf.length===6)setTimeout(handlePin,120);
+}
+function pinBack(){if(!pinBuf.length)return;pinBuf=pinBuf.slice(0,-1);renderDots()}
+function renderDots(s){document.querySelectorAll('.pin-dot').forEach((d,i)=>{d.classList.remove('ok','err');if(s==='err')d.classList.add('err');else if(i<pinBuf.length)d.classList.add('ok')})}
+function pinErr(m){const e=document.getElementById('pin-err');e.textContent=m||'Onjuiste PIN';e.classList.remove('h');renderDots('err');setTimeout(()=>{pinBuf='';renderDots()},700)}
+
+async function handlePin(){
+  if(isLocked()){document.getElementById('pin-lbl').textContent=`Geblokkeerd — ${lockMins()} min`;pinBuf='';renderDots();return}
+  const h=await hashPin(pinBuf);
+  if(pinMode==='enter'){
+    if(h===getHash()){clrFail();localStorage.setItem(PD_UNLOCK,''+(Date.now()+PIN_SESSION));showApp()}
+    else{const l=recFail();if(l){document.getElementById('pin-lbl').textContent=`Geblokkeerd — ${lockMins()} min`;document.querySelectorAll('.pin-b').forEach(b=>b.disabled=true);pinBuf='';renderDots()}else{const left=MAX_TRIES-+(localStorage.getItem(PD_TRIES)||0);pinErr(`Onjuiste PIN — nog ${left}`)}}
+  }else if(pinMode==='set-new'){
+    pinNew=pinBuf;pinMode='confirm';pinBuf='';renderDots();document.getElementById('pin-lbl').textContent='Bevestig je PIN';
+  }else if(pinMode==='confirm'){
+    if(pinBuf===pinNew){localStorage.setItem(PD_HASH,h);localStorage.setItem(PD_UNLOCK,''+(Date.now()+PIN_SESSION));showApp()}
+    else{pinErr('PINs komen niet overeen');setTimeout(()=>{pinMode='set-new';pinNew='';document.getElementById('pin-lbl').textContent='Kies een PIN van 6 cijfers';document.getElementById('pin-err').classList.add('h')},800)}
+  }
+}
+
+function showApp(){
+  document.getElementById('pin-s').classList.add('hidden');
+  const app=document.getElementById('app');app.classList.add('show');
+  render();
+}
+
+// ===================== DEAL DATA =====================
+const ST='__SCAN_TIME__';
+let D=[],P=168,S='discount_percent',Q='',MP=0,HIDE_NEP=true,ONLY_VERI=false;
+try{const r=document.getElementById('dd').textContent.trim();if(r&&!r.includes('__'))D=JSON.parse(r)}catch(e){}
+
+// Scan status
+if(ST&&!ST.includes('__')){
+  const p=ST.match(/(\d{2})-(\d{2})-(\d{4})\s(\d{2}):(\d{2})/);
+  if(p){const sd=new Date(+p[3],+p[2]-1,+p[1],+p[4],+p[5]);const m=Math.floor((Date.now()-sd.getTime())/60000);
+    const el=document.getElementById('sp'),t=document.getElementById('st');
+    if(m<60){t.textContent=m+'m geleden';el.className='sp sp-ok'}
+    else if(m<240){t.textContent=Math.floor(m/60)+'u geleden';el.className='sp sp-w'}
+    else{t.textContent=Math.floor(m/60)+'u geleden';el.className='sp sp-x'}
+  }
+}
+
+// Controls
+const thr=document.getElementById('thr'),thrV=document.getElementById('thrV');
+const mpEl=document.getElementById('mp'),mpV=document.getElementById('mpV');
+const qEl=document.getElementById('q');
+const g=k=>localStorage.getItem('pd6_'+k);
+if(g('t'))thr.value=g('t');if(g('m'))mpEl.value=g('m');
+thrV.textContent=thr.value+'%';MP=+mpEl.value;mpV.textContent='€'+MP;
+
+thr.addEventListener('input',()=>{thrV.textContent=thr.value+'%';localStorage.setItem('pd6_t',thr.value);render()});
+mpEl.addEventListener('input',()=>{MP=+mpEl.value;mpV.textContent='€'+MP;localStorage.setItem('pd6_m',mpEl.value);render()});
+qEl.addEventListener('input',()=>{Q=qEl.value.toLowerCase();render()});
+
+document.getElementById('fb').addEventListener('click',e=>{
+  const b=e.target.closest('.fb');if(!b)return;
+  if(b.dataset.h){document.querySelectorAll('[data-h]').forEach(x=>x.classList.remove('on'));b.classList.add('on');P=+b.dataset.h;render()}
+  if(b.dataset.s){document.querySelectorAll('[data-s]').forEach(x=>x.classList.remove('on'));b.classList.add('on');S=b.dataset.s;render()}
+  if(b.dataset.tog==='nep'){HIDE_NEP=!HIDE_NEP;b.classList.toggle('on',HIDE_NEP);render()}
+  if(b.dataset.tog==='veri'){ONLY_VERI=!ONLY_VERI;b.classList.toggle('on',ONLY_VERI);render()}
+});
+
+function flt(){
+  const md=+thr.value,co=Date.now()-P*36e5;
+  return D.filter(d=>{
+    if(d.discount_percent<md)return false;
+    if(d.current_price<MP)return false;
+    if(d.found_at&&new Date(d.found_at).getTime()<co)return false;
+    if(Q&&!d.product_name.toLowerCase().includes(Q))return false;
+    if(HIDE_NEP&&d.is_fake_discount)return false;
+    if(ONLY_VERI&&!d.is_verified)return false;
+    return true;
+  }).sort((a,b)=>{
+    if(S==='mp_profit')return(b.mp_profit||0)-(a.mp_profit||0);
+    if(S==='found_at')return new Date(b.found_at||0)-new Date(a.found_at||0);
+    if(S==='current_price')return a.current_price-b.current_price;
+    return(b.real_discount_percent||b.discount_percent)-(a.real_discount_percent||a.discount_percent);
+  });
+}
+
+function render(){
+  const ds=flt();
+  document.getElementById('cnt').textContent=ds.length+' deals';
+  const el=document.getElementById('dl');
+  if(!ds.length){el.innerHTML='<div class="empty"><b>🔍</b>Geen deals gevonden</div>';return}
+
+  el.innerHTML=ds.map(d=>{
+    const disc=d.real_discount_percent||d.discount_percent;
+    const bc=disc>=60?'b-h':disc>=40?'b-w':'b-c';
+    const fc=d.is_fake_discount?' fake':'';
+    const vc=(d.is_verified&&!d.is_fake_discount)?' veri':'';
+    const t=d.found_at?new Date(d.found_at).toLocaleString('nl-NL',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+    const shop=d.shop.split('(')[0].trim();
+    const flag=d.country_flag||'';
+    const ship=d.shipping_cost||0;
+
+    let tags='';
+    if(d.mp_median_price){const pr=(d.mp_profit||0)-ship;tags+=`<span class="tag tag-m">MP €${d.mp_median_price.toFixed(0)}</span><span class="tag ${pr>=0?'tag-g':'tag-r'}">${pr>=0?'+':''}€${pr.toFixed(0)} netto</span>`}
+    else if(!d.is_fake_discount){const est=(d.market_price||d.original_price)*.7-d.current_price-ship;if(est>0)tags+=`<span class="tag tag-g">~+€${est.toFixed(0)}</span>`}
+    if(d.is_verified&&!d.is_fake_discount)tags+=`<span class="tag tag-g">ECHT</span>`;
+    if(d.market_price&&!d.is_fake_discount)tags+=`<span class="tag tag-b">Markt €${d.market_price.toFixed(0)}</span>`;
+    if(d.shipping_free)tags+=`<span class="tag tag-g">Gratis verzend</span>`;
+    else if(ship>0)tags+=`<span class="tag tag-m">+€${ship.toFixed(0)} verzend</span>`;
+    if(d.coupon_code)tags+=`<span class="tag tag-c">CODE: ${d.coupon_code}</span>`;
+
+    let nep='';
+    if(d.is_fake_discount&&d.market_price){const rd=d.market_price>d.current_price?((d.market_price-d.current_price)/d.market_price*100):0;
+      nep=`<div style="background:#fff0ef;border-radius:6px;padding:3px 7px;font-size:10px;color:#e53e3e;margin-top:1px"><b>NEP</b> Echte marktprijs: €${d.market_price.toFixed(0)} (${rd.toFixed(0)}% korting)</div>`}
+
+    return`<a href="${d.url}" target="_blank" rel="noopener" class="dc${fc}${vc}">
+<div class="dc1"><div class="dc-n">${d.product_name}</div><div class="badge ${bc}">-${disc.toFixed(0)}%</div></div>
+<div class="dc2"><span class="dc-p">€${d.current_price.toFixed(2)}</span><span class="dc-was">€${d.original_price.toFixed(0)}</span><span class="dc-shop">${flag} ${shop}</span></div>
+<div class="dc3">${tags}<span class="dc-t">${t}</span></div>${nep}</a>`;
+  }).join('');
+}
+
+initPin();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/local/pricedrop_sw.js').catch(()=>{});
+</script>
+</body>
+</html>
