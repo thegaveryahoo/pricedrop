@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f0faf2">
+<meta name="color-scheme" content="light">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/pricedrop/pricedrop_manifest.json">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%2322c55e'/><stop offset='100%' stop-color='%23ff8c2e'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><text x='50' y='42' text-anchor='middle' font-size='28' font-weight='bold' fill='white' font-family='system-ui'>DEEF</text><text x='50' y='72' text-anchor='middle' font-size='22' fill='rgba(255,255,255,.8)' font-family='system-ui'>DROP</text></svg>">
+<title>Deef's PriceDrop</title>
+<style>
+:root{color-scheme:light!important}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:#f0faf2!important;color:#1a2e1f!important}
+@media(prefers-color-scheme:dark){html,body{background:#f0faf2!important;color:#1a2e1f!important}input,button{color-scheme:light}}
+body{font-family:-apple-system,'Segoe UI',system-ui,sans-serif;height:100dvh;overflow:hidden}
+
+/* === PIN SCREEN === */
+.pin-s{position:fixed;inset:0;background:linear-gradient(160deg,#f0faf2 0%,#fff6ed 100%);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:30px 20px}
+.pin-s.hidden{display:none}
+.pin-logo{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:8px}
+.pin-logo svg{width:64px;height:64px;filter:drop-shadow(0 4px 12px rgba(34,197,94,.25))}
+.pin-logo b{font-size:20px;color:#1a2e1f}
+.pin-logo small{font-size:11px;color:#6b8f72}
+.pin-lbl{font-size:14px;color:#6b8f72;font-weight:600;text-align:center}
+.pin-dots{display:flex;gap:12px;margin:4px 0}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid #c8e0cc;background:transparent;transition:.15s}
+.pin-dot.ok{background:#22c55e;border-color:#22c55e}
+.pin-dot.err{background:#e53e3e;border-color:#e53e3e}
+.pin-err{font-size:12px;color:#e53e3e;font-weight:600;min-height:16px}
+.pin-err.h{visibility:hidden}
+.pin-pad{display:grid;grid-template-columns:repeat(3,68px);gap:8px}
+.pin-b{width:68px;height:52px;border-radius:12px;border:1.5px solid #c8e0cc;background:#fff;color:#1a2e1f;font-size:22px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.pin-b:active{background:#e8f5ea;transform:scale(.93)}
+
+/* === MAIN APP === */
+.app{display:none;height:100dvh;flex-direction:column;overflow:hidden}
+.app.show{display:flex}
+
+/* Header */
+.hdr{padding:10px 14px 8px;background:rgba(240,250,242,.97);backdrop-filter:blur(12px);border-bottom:2px solid #c8e0cc;flex-shrink:0}
+.h1{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.logo{display:flex;align-items:center;gap:7px}
+.logo svg{width:26px;height:26px}
+.logo b{font-size:16px;color:#1a2e1f}
+.logo b span{color:#ff8c2e}
+.sp{font-size:11px;padding:3px 9px;border-radius:14px;display:flex;align-items:center;gap:4px;font-weight:600}
+.sp .d{width:7px;height:7px;border-radius:50%}
+.sp-ok{background:#e8f5ea;color:#22c55e}.sp-ok .d{background:#22c55e}
+.sp-w{background:#fff0e0;color:#b87a00}.sp-w .d{background:#ff8c2e}
+.sp-x{background:#fff0ef;color:#e53e3e}.sp-x .d{background:#e53e3e}
+
+.search{margin-bottom:6px}
+.search input{width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid #c8e0cc;background:#fff;font-size:14px;color:#1a2e1f;outline:none}
+.search input:focus{border-color:#22c55e}
+.search input::placeholder{color:#a0c0a6}
+
+.sliders{display:flex;flex-direction:column;gap:4px}
+.sl{display:flex;align-items:center;gap:6px}
+.sl label{font-size:11px;color:#6b8f72;font-weight:700;min-width:50px}
+.sl input[type=range]{-webkit-appearance:none;flex:1;height:4px;border-radius:2px;background:#c8e0cc;outline:none}
+.sl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#ff8c2e);box-shadow:0 2px 6px rgba(34,197,94,.3)}
+.sv{font-size:14px;font-weight:800;color:#22c55e;min-width:38px;text-align:right}
+
+/* Filters */
+.fbar{display:flex;gap:5px;padding:6px 14px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;border-bottom:1.5px solid #c8e0cc;background:#f7fcf8}
+.fbar::-webkit-scrollbar{display:none}
+.fb{flex-shrink:0;padding:6px 12px;border-radius:16px;font-size:12px;font-weight:600;border:1.5px solid #c8e0cc;background:#fff;color:#6b8f72;cursor:pointer;white-space:nowrap}
+.fb.on{background:#22c55e;color:#fff;border-color:#22c55e}
+.fb i{font-style:normal;font-size:9px;opacity:.8;margin-left:2px}
+.sep{width:1.5px;background:#c8e0cc;flex-shrink:0;margin:4px 0}
+
+/* Deal list */
+.dl{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 14px 28px;display:flex;flex-direction:column;gap:7px}
+
+/* Deal card */
+.dc{background:#fff;border-radius:14px;padding:10px 12px;border:1.5px solid #d4e8d6;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:3px;box-shadow:0 1px 4px rgba(34,100,50,.06)}
+.dc:active{opacity:.85;transform:scale(.98);transition:.1s}
+.dc.fake{opacity:.4}
+.dc.veri{border-left:3px solid #22c55e}
+.dc1{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.dc-n{font-size:13px;font-weight:600;line-height:1.3;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.badge{flex-shrink:0;padding:3px 8px;border-radius:8px;font-size:14px;font-weight:800}
+.b-h{background:#fff0ef;color:#e53e3e}
+.b-w{background:#fff0e0;color:#b87a00}
+.b-c{background:#e8f0ff;color:#2b7de9}
+.dc2{display:flex;align-items:baseline;gap:5px;flex-wrap:wrap}
+.dc-p{font-size:17px;font-weight:800;color:#1a2e1f}
+.dc-was{font-size:11px;color:#a0c0a6;text-decoration:line-through}
+.dc-shop{font-size:9px;font-weight:700;padding:2px 5px;border-radius:4px;background:#f0faf2;color:#6b8f72;text-transform:uppercase}
+.dc3{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.tag{font-size:10px;font-weight:600;padding:2px 6px;border-radius:5px}
+.tag-g{color:#16a34a;background:#e8f5ea}
+.tag-r{color:#e53e3e;background:#fff0ef}
+.tag-b{color:#2b7de9;background:#e8f0ff}
+.tag-m{color:#6b8f72;background:#f0faf2}
+.tag-c{color:#8b5cf6;background:#f3f0ff}
+.dc-t{font-size:9px;color:#a0c0a6;margin-left:auto}
+.empty{text-align:center;padding:40px 16px;color:#a0c0a6}
+.empty b{font-size:28px;display:block;margin-bottom:6px;opacity:.3}
+
+/* Footer */
+.ftr{flex-shrink:0;background:rgba(240,250,242,.97);backdrop-filter:blur(8px);border-top:1.5px solid #c8e0cc;padding:4px 14px;display:flex;justify-content:space-between;align-items:center}
+.ftr span,.ftr button{font-size:10px;color:#a0c0a6}
+.ftr button{background:none;border:none;cursor:pointer;color:#22c55e;font-weight:600}
+
+/* Changelog */
+.clm{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;align-items:flex-end;justify-content:center}
+.clm-box{background:#fff;border-radius:16px 16px 0 0;padding:20px;max-width:400px;width:100%;max-height:65vh;overflow-y:auto}
+.clm-box h3{font-size:16px;margin-bottom:12px;color:#1a2e1f}
+.clm-box p{font-weight:700;color:#22c55e;font-size:13px;margin:8px 0 4px}
+.clm-box ul{font-size:12px;color:#6b8f72;padding-left:16px;line-height:1.6;margin-bottom:8px}
+.clm-x{background:none;border:none;font-size:22px;cursor:pointer;color:#a0c0a6;float:right}
+@media(min-width:500px){body{max-width:420px;margin:0 auto}}
+</style>
+</head>
+<body>
+
+<!-- PIN SCREEN -->
+<div class="pin-s" id="pin-s">
+  <div class="pin-logo">
+    <svg viewBox="0 0 100 100"><defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#ff8c2e"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="url(#pg)"/><text x="50" y="42" text-anchor="middle" font-size="28" font-weight="bold" fill="white" font-family="system-ui">DEEF</text><text x="50" y="72" text-anchor="middle" font-size="22" fill="rgba(255,255,255,.8)" font-family="system-ui">DROP</text></svg>
+    <b>Deef's PriceDrop</b>
+    <small>Prijsfout-detector</small>
+  </div>
+  <div class="pin-lbl" id="pin-lbl">Voer je PIN in</div>
+  <div class="pin-dots" id="pin-dots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+  <div class="pin-err h" id="pin-err">Onjuiste PIN</div>
+  <div class="pin-pad">
+    <button class="pin-b" onclick="pinPress('1')">1</button><button class="pin-b" onclick="pinPress('2')">2</button><button class="pin-b" onclick="pinPress('3')">3</button>
+    <button class="pin-b" onclick="pinPress('4')">4</button><button class="pin-b" onclick="pinPress('5')">5</button><button class="pin-b" onclick="pinPress('6')">6</button>
+    <button class="pin-b" onclick="pinPress('7')">7</button><button class="pin-b" onclick="pinPress('8')">8</button><button class="pin-b" onclick="pinPress('9')">9</button>
+    <button class="pin-b" style="visibility:hidden"></button><button class="pin-b" onclick="pinPress('0')">0</button><button class="pin-b" onclick="pinBack()">&#9003;</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="app">
+<div class="hdr">
+  <div class="h1">
+    <div class="logo">
+      <svg viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#ff8c2e"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="url(#g)"/><text x="50" y="42" text-anchor="middle" font-size="28" font-weight="bold" fill="white" font-family="system-ui">D</text><text x="50" y="72" text-anchor="middle" font-size="20" fill="rgba(255,255,255,.8)" font-family="system-ui">DROP</text></svg>
+      <b>Deef's <span>PriceDrop</span></b>
+    </div>
+    <div class="sp sp-ok" id="sp"><div class="d"></div><span id="st">-</span></div>
+  </div>
+  <div class="search"><input type="text" id="q" placeholder="Zoek product..."></div>
+  <div class="sliders">
+    <div class="sl"><label>Korting</label><input type="range" id="thr" min="10" max="90" step="5" value="40"><span class="sv" id="thrV">40%</span></div>
+    <div class="sl"><label>Min prijs</label><input type="range" id="mp" min="0" max="500" step="25" value="0"><span class="sv" id="mpV">€0</span></div>
+  </div>
+</div>
+
+<div class="fbar" id="fb">
+  <button class="fb" data-h="24">24u</button><button class="fb" data-h="48">48u</button><button class="fb on" data-h="168">7d</button><button class="fb" data-h="720">30d</button>
+  <div class="sep"></div>
+  <button class="fb on" data-s="discount_percent">Korting</button><button class="fb" data-s="mp_profit">MP winst</button><button class="fb" data-s="current_price">Prijs</button><button class="fb" data-s="found_at">Nieuw</button>
+  <div class="sep"></div>
+  <button class="fb on" id="hideNep" data-tog="nep">Nep weg</button><button class="fb" data-tog="veri">Alleen echt</button>
+</div>
+
+<div class="dl" id="dl"></div>
+
+<div class="ftr">
+  <span>v2.6</span>
+  <button onclick="document.getElementById('clm').style.display='flex'">Changelog</button>
+  <span id="cnt">0 deals</span>
+</div>
+</div><!-- /app -->
+
+<!-- CHANGELOG -->
+<div class="clm" id="clm" onclick="if(event.target===this)this.style.display='none'">
+  <div class="clm-box">
+    <button class="clm-x" onclick="document.getElementById('clm').style.display='none'">x</button>
+    <h3>Changelog</h3>
+    <p>v2.5 — 3 apr 2026</p>
+    <ul>
+      <li>Rebranding: Deef's PriceDrop</li>
+      <li>Groen + oranje kleurenschema</li>
+      <li>PIN-login (6 cijfers, 4u sessie, 5 pogingen/lockout)</li>
+      <li>iBood alle aanbiedingen</li>
+      <li>Verzendkosten per shop in winstberekening</li>
+      <li>Kortingscode-scraper (Pepper + acties.nl)</li>
+      <li>Nep-filter + alleen-echt filter</li>
+      <li>Verzamel-deals gefilterd</li>
+      <li>Geforceerd licht thema (geen dark mode)</li>
+    </ul>
+    <p>v2.0 — 3 apr 2026</p>
+    <ul><li>12+ shops, prijsverificatie, Marktplaats check</li></ul>
+    <p>v1.0 — 3 apr 2026</p>
+    <ul><li>Eerste versie: 5 shops, Windows notificaties</li></ul>
+  </div>
+</div>
+
+<script id="dd" type="application/json">[{"id": 48, "product_name": "Preisfehler: Kingstone Cube Outdoorküchen-Modul Basisschrank für 1€ (Bauhaus Aholung)", "shop": "mydealz (mydealz)", "current_price": 1.0, "original_price": 449.0, "discount_percent": 99.8, "url": "https://www.mydealz.de/deals/preisfehler-kingstone-cube-outdoorkuchen-modul-basisschrank-fur-1eur-bauhaus-aholung-2754929", "found_at": "2026-04-03T16:36:36.162211", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": 570.0, "mp_median_price": 600.0, "mp_listings": 18, "mp_profit": 599.0, "country": "", "country_flag": ""}, {"id": 16, "product_name": "(Duitsland) Monster Energy 0,5L €0,77 | Coca Cola, Fanta, Sprite 1,25L €0,79 @Kaufland", "shop": "Pepper (Geplaatst 23 u geleden)", "current_price": 0.77, "original_price": 77.0, "discount_percent": 99.0, "url": "https://nl.pepper.com/aanbiedingen/duitsland-monster-energy-05l-eur077-coca-cola-fanta-sprite-125l-eur079-at-kaufland-398786", "found_at": "2026-04-03T12:10:23.709507", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 47, "product_name": "Preisfehler: Step by Step Space Set Shine Dino Night Tyro Schulranzen Set für 7,11€ (Kaufland/Kofferworld)", "shop": "mydealz (mydealz)", "current_price": 7.11, "original_price": 220.0, "discount_percent": 96.8, "url": "https://www.mydealz.de/deals/preisfehler-step-by-step-space-set-shine-dino-night-tyro-schulranzen-set-fur-711eur-kauflandkofferworld-2755215", "found_at": "2026-04-03T16:36:36.154171", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": 23.8, "mp_median_price": 25.0, "mp_listings": 30, "mp_profit": 17.89, "country": "", "country_flag": ""}, {"id": 53, "product_name": "Preisfehler: Bosch UniversalRotak 37-550 Rasenmäher mit 2 Akkus 4,0Ah und Ladegerät für 9,03€", "shop": "mydealz (mydealz)", "current_price": 9.03, "original_price": 259.0, "discount_percent": 96.5, "url": "https://www.mydealz.de/deals/preisfehler-bosch-universalrotak-37-550-rasenmaher-mit-2-akkus-40ah-und-ladegerat-fur-903eur-2750186", "found_at": "2026-04-03T16:36:36.205778", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": 16.71, "mp_median_price": 10.0, "mp_listings": 21, "mp_profit": 0.9700000000000006, "country": "", "country_flag": ""}, {"id": 18, "product_name": "Planet Coaster - PC en Mac - Steam (Ook alle DLC met 60% korting)", "shop": "Pepper (Geplaatst 16 u geleden)", "current_price": 1.89, "original_price": 37.99, "discount_percent": 95.0, "url": "https://nl.pepper.com/aanbiedingen/planet-coaster-pc-en-mac-steam-ook-alle-dlc-met-60-korting-398840", "found_at": "2026-04-03T12:10:23.723702", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 49, "product_name": "TP-Link Archer BE900 PREISFEHLER", "shop": "mydealz (mydealz)", "current_price": 59.05, "original_price": 835.99, "discount_percent": 92.9, "url": "https://www.mydealz.de/deals/tp-link-archer-be900-preisfehler-2753315", "found_at": "2026-04-03T16:36:36.170524", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": 28.58, "mp_median_price": 25.0, "mp_listings": 36, "mp_profit": -34.05, "country": "", "country_flag": ""}, {"id": 51, "product_name": "Van Rysel | Regenjacke Rennrad langarm EDR Herren blau | Preisfehler Lokal?", "shop": "mydealz (mydealz)", "current_price": 4.99, "original_price": 52.99, "discount_percent": 90.6, "url": "https://www.mydealz.de/deals/van-rysel-regenjacke-rennrad-langarm-edr-herren-blau-preisfehler-2752362", "found_at": "2026-04-03T16:36:36.188154", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": 15.72, "mp_median_price": 15.0, "mp_listings": 27, "mp_profit": 10.01, "country": "", "country_flag": ""}, {"id": 28, "product_name": "[Nintendo eShop] NBA 2K26 zum Bestpreis für Nintendo Switch (Switch2 für 19,99€) | als Slam Edition für 22,49€", "shop": "mydealz (mydealz)", "current_price": 8.99, "original_price": 59.99, "discount_percent": 85.0, "url": "https://www.mydealz.de/deals/nintendo-eshop-nba-2k26-zum-bestpreis-fur-nintendo-switch-switch2-fur-1999eur-als-slam-edition-fur-2249eur-2758771", "found_at": "2026-04-03T12:10:23.796105", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 42, "product_name": "Preisfehler! Edelstahl Grillplatte - Plancha Universalgröße 26 X 44,5 Cm Für Viele Kohle- Und Gasgrills Plus Grillspachtel - Tüv-Geprüft", "shop": "mydealz (mydealz)", "current_price": 8.22, "original_price": 54.5, "discount_percent": 84.9, "url": "https://www.mydealz.de/deals/preisfehler-edelstahl-grillplatte-plancha-universalgrosse-26-x-445-cm-fur-viele-kohle-und-gasgrills-plus-grillspachtel-tuv-gepruft-2756633", "found_at": "2026-04-03T16:36:36.093746", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": 499.5, "mp_median_price": 599.0, "mp_listings": 36, "mp_profit": 590.78, "country": "", "country_flag": ""}, {"id": 46, "product_name": "Preisfehler! WC-Garnitur - Inklusive Klopapierhalter und Toilettenbürste GRATIS: 2 Schwarze Klobürstenköpfe zum Austauschen PRIME", "shop": "mydealz (mydealz)", "current_price": 5.41, "original_price": 35.75, "discount_percent": 84.9, "url": "https://www.mydealz.de/deals/preisfehler-wc-garnitur-inklusive-klopapierhalter-und-toilettenburste-gratis-2-schwarze-kloburstenkopfe-zum-austauschen-prime-2756340", "found_at": "2026-04-03T16:36:36.144003", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": 10.43, "mp_median_price": 7.99, "mp_listings": 21, "mp_profit": 2.58, "country": "", "country_flag": ""}, {"id": 43, "product_name": "Preisfehler! WC-Set – Schwarz – 22 x 18 x 70 cm – Toilettenpapierhalter und Toilettenbürste im Lieferumfang 1 + 2 Ersatzbürstenköpfe PRIME", "shop": "mydealz (mydealz)", "current_price": 5.17, "original_price": 33.99, "discount_percent": 84.8, "url": "https://www.mydealz.de/deals/preisfehler-wc-set-schwarz-22-x-18-x-70-cm-toilettenpapierhalter-und-toilettenburste-im-lieferumfang-1-2-ersatzburstenkopfe-prime-2756629", "found_at": "2026-04-03T16:36:36.115254", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": 4.01, "mp_median_price": 3.2, "mp_listings": 24, "mp_profit": -1.9699999999999998, "country": "", "country_flag": ""}, {"id": 34, "product_name": "Ikea Groningen, Själsö stoel", "shop": "Pepper (Geplaatst 1 u geleden)", "current_price": 19.99, "original_price": 129.0, "discount_percent": 84.5, "url": "https://nl.pepper.com/aanbiedingen/ikea-groningen-sjalso-stoel-398906", "found_at": "2026-04-03T16:36:36.003712", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": 29.88, "mp_median_price": 30.0, "mp_listings": 24, "mp_profit": 10.010000000000002, "country": "", "country_flag": ""}, {"id": 54, "product_name": "Preisfehler Schneider P150201x10 10 Kugelschreiber, Schwarz, 10er-Pack [Amazon Spanien]", "shop": "mydealz (mydealz)", "current_price": 5.21, "original_price": 31.94, "discount_percent": 83.7, "url": "https://www.mydealz.de/deals/preisfehler-schneider-p150201x10-10-kugelschreiber-schwarz-10er-pack-2743689", "found_at": "2026-04-03T16:36:36.214076", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": 41.43, "mp_median_price": 40.0, "mp_listings": 21, "mp_profit": 34.79, "country": "", "country_flag": ""}, {"id": 45, "product_name": "Preisfehler! Edelstahl Grillplatte - 30x40 cm Universal Plancha für Kohle- und Gasgrills - Grillplatte für Gleichmäßige Hitzeverteilung", "shop": "mydealz (mydealz)", "current_price": 9.97, "original_price": 59.97, "discount_percent": 83.4, "url": "https://www.mydealz.de/deals/preisfehler-edelstahl-grillplatte-30x40-cm-universal-plancha-fur-kohle-und-gasgrills-grillplatte-fur-gleichmassige-hitzeverteilung-2756343", "found_at": "2026-04-03T16:36:36.135662", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 44, "product_name": "Preisfehler: Edelstahl Grillplatte - Plancha Universalgröße 20 X 30 Cm Für Viele Kohle - Und Gasgrills Plus Grillspachtel (prime)", "shop": "mydealz (mydealz)", "current_price": 7.16, "original_price": 39.91, "discount_percent": 82.1, "url": "https://www.mydealz.de/deals/preisfehler-edelstahl-grillplatte-plancha-universalgrosse-20-x-30-cm-fur-viele-kohle-und-gasgrills-plus-grillspachtel-prime-2756346", "found_at": "2026-04-03T16:36:36.125981", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 6, "product_name": "Borderlands Legendary Collection - Nintendo Switch - eShop", "shop": "Pepper (Geplaatst 43 min geleden)", "current_price": 9.99, "original_price": 49.99, "discount_percent": 80.0, "url": "https://nl.pepper.com/aanbiedingen/borderlands-legendary-collection-nintendo-switch-eshop-398895", "found_at": "2026-04-03T12:10:23.635750", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 7, "product_name": "BioShock: The Collection - Nintendo Switch - eShop", "shop": "Pepper (Geplaatst 45 min geleden)", "current_price": 9.99, "original_price": 49.99, "discount_percent": 80.0, "url": "https://nl.pepper.com/aanbiedingen/bioshock-the-collection-nintendo-switch-eshop-398894", "found_at": "2026-04-03T12:10:23.641923", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 41, "product_name": "[Preisfehler] - Solakon Solarmodul 500W Bifaziales Monokristallines Solarpanel 40V Photovoltaik für Balkonkraftwerk PV-Anlage 4 Stück", "shop": "mydealz (mydealz)", "current_price": 99.0, "original_price": 398.0, "discount_percent": 75.1, "url": "https://www.mydealz.de/deals/preisfehler-solakon-solarmodul-500w-bifaziales-monokristallines-solarpanel-40v-photovoltaik-fur-balkonkraftwerk-pv-anlage-4-stuck-2757718", "found_at": "2026-04-03T16:36:36.085391", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 52, "product_name": "[Amazon Prime] Anthrax - For All Kings | Vinyl | Preisfehler ? | 22,34 €", "shop": "mydealz (mydealz)", "current_price": 22.34, "original_price": 77.58, "discount_percent": 71.2, "url": "https://www.mydealz.de/deals/amazon-prime-anthrax-for-all-kings-vinyl-preisfehler-2234-eur-2750357", "found_at": "2026-04-03T16:36:36.197178", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 10, "product_name": "White Goblin Games Mysteryboxen", "shop": "Pepper (Geplaatst 3 u geleden)", "current_price": 50.0, "original_price": 169.8, "discount_percent": 70.6, "url": "https://nl.pepper.com/aanbiedingen/white-goblin-games-mysteryboxen-398879", "found_at": "2026-04-03T12:10:23.663011", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 35, "product_name": "JACK&JONES PLUS - JCOGEO SWEAT CREW NECK SMU PLS", "shop": "Pepper (Geplaatst 3 u geleden)", "current_price": 15.0, "original_price": 49.99, "discount_percent": 70.0, "url": "https://nl.pepper.com/aanbiedingen/jackjones-plus-jcogeo-sweat-crew-neck-smu-pls-398905", "found_at": "2026-04-03T16:36:36.015048", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 1, "product_name": "Call of Duty: Black Ops 7 - PS5", "shop": "MediaMarkt", "current_price": 24.99, "original_price": 79.99, "discount_percent": 68.8, "url": "https://www.mediamarkt.nl/nl/product/_call-of-duty-black-ops-7-ps5-1890174.html", "found_at": "2026-04-03T11:25:48.538455", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 2, "product_name": "Call of Duty: Black Ops 7 - PS4", "shop": "MediaMarkt", "current_price": 24.99, "original_price": 79.99, "discount_percent": 68.8, "url": "https://www.mediamarkt.nl/nl/product/_call-of-duty-black-ops-7-ps4-1890173.html", "found_at": "2026-04-03T11:25:48.557139", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 13, "product_name": "Limango - tot 67% korting op Profuomo", "shop": "Pepper (Geplaatst 4 u geleden)", "current_price": 64.99, "original_price": 199.95, "discount_percent": 67.5, "url": "https://nl.pepper.com/aanbiedingen/limango-tot-67-korting-op-profuomo-398872", "found_at": "2026-04-03T12:10:23.687776", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 5, "product_name": "Grand Theft Auto: The Trilogy – The Definitive Edition - Nintendo Switch - eShop", "shop": "Pepper (Geplaatst 41 min geleden)", "current_price": 19.79, "original_price": 59.99, "discount_percent": 67.0, "url": "https://nl.pepper.com/aanbiedingen/grand-theft-auto-the-trilogy-the-definitive-edition-nintendo-switch-eshop-398896", "found_at": "2026-04-03T12:10:23.628263", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 12, "product_name": "My Little Pony Light Shimmer Action + Licht", "shop": "Pepper (Geplaatst 4 u geleden)", "current_price": 14.99, "original_price": 39.95, "discount_percent": 62.5, "url": "https://nl.pepper.com/aanbiedingen/my-little-pony-light-shimmer-action-licht-398873", "found_at": "2026-04-03T12:10:23.680827", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 15, "product_name": "Last minute Eurostar treinkaartjes – bespaar tot 50% naar Parijs, Londen en Brussel", "shop": "Pepper (Geplaatst 24 u geleden)", "current_price": 35.0, "original_price": 75.0, "discount_percent": 53.3, "url": "https://nl.pepper.com/aanbiedingen/last-minute-eurostar-treinkaartjes-bespaar-tot-50-naar-parijs-londen-en-brussel-398774", "found_at": "2026-04-03T12:10:23.702096", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 14, "product_name": "Verschillende Sharkoon aanbiediengen bij Alternate", "shop": "Pepper (Geplaatst 5 u geleden)", "current_price": 26.0, "original_price": 48.0, "discount_percent": 45.8, "url": "https://nl.pepper.com/aanbiedingen/verschillende-sharkoon-aanbiediengen-bij-alternate-398868", "found_at": "2026-04-03T12:10:23.694952", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 11, "product_name": "Nitecore TM03 Zaklamp @ €69,95", "shop": "Pepper (Verloopt over 11h 57m 43s)", "current_price": 69.95, "original_price": 126.02, "discount_percent": 44.5, "url": "https://nl.pepper.com/aanbiedingen/nitecore-tm03-zaklamp-at-eur6995-398862", "found_at": "2026-04-03T12:10:23.670254", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 50, "product_name": "Ulanzi VL-120C RGB (Preisfehler? Die RGB Version zum Preis der Bi-Color)", "shop": "mydealz (mydealz)", "current_price": 78.69, "original_price": 139.69, "discount_percent": 43.7, "url": "https://www.mydealz.de/deals/ulanzi-vl-120c-rgb-preisfehler-die-rgb-version-zum-preis-der-bi-color-2753274", "found_at": "2026-04-03T16:36:36.179334", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 32, "product_name": "EA Sports FC 26 - Nintendo Switch", "shop": "MediaMarkt", "current_price": 29.99, "original_price": 50.99, "discount_percent": 41.2, "url": "https://www.mediamarkt.nl/nl/product/_ea-sports-fc-26-nintendo-switch-1888249.html", "found_at": "2026-04-03T12:10:23.825528", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 27, "product_name": "JBL Cinema SB 510 – 3.1-Kanal-Soundbar mit integriertem Subwoofer für Heimkino Sound-System – Mit Bluetooth-Musik-Streaming und Dolby Audio", "shop": "mydealz (mydealz)", "current_price": 99.99, "original_price": 169.0, "discount_percent": 40.8, "url": "https://www.mydealz.de/deals/jbl-cinema-sb-510-31-kanal-soundbar-mit-integriertem-subwoofer-fur-heimkino-sound-system-mit-bluetooth-musik-streaming-und-dolby-audio-2758743", "found_at": "2026-04-03T12:10:23.788191", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 9, "product_name": "Hisense 55E8Q tv 55 inch 4K UHD mini-LED ULED 144Hz smart tv", "shop": "Pepper (Geplaatst 2 u geleden)", "current_price": 428.0, "original_price": 715.99, "discount_percent": 40.2, "url": "https://nl.pepper.com/aanbiedingen/hisense-55e8q-tv-55-inch-4k-uhd-mini-led-uled-144hz-smart-tv-398885", "found_at": "2026-04-03T12:10:23.656164", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 29, "product_name": "DOEL Selbstreinigende Katzentoilette | APP-Gesundheitsüberwachung & Infrarot-Radar | 65L, große Matte, 4 Schwerkraftsensoren [nur 2.4G WIFI]", "shop": "mydealz (mydealz)", "current_price": 131.99, "original_price": 219.95, "discount_percent": 40.0, "url": "https://www.mydealz.de/deals/doel-selbstreinigende-katzentoilette-app-gesundheitsuberwachung-infrarot-radar-65l-grosse-matte-4-schwerkraftsensoren-nur-24g-wifi-2757602", "found_at": "2026-04-03T12:10:23.803470", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}, {"id": 31, "product_name": "F1 25 |PS5 Game", "shop": "MediaMarkt", "current_price": 29.99, "original_price": 49.99, "discount_percent": 40.0, "url": "https://www.mediamarkt.nl/nl/product/_electronic-arts-nederland-bv-f1-25-orps5-game-1881580.html", "found_at": "2026-04-03T12:10:23.818343", "notified": 0, "market_price": null, "real_discount_percent": null, "is_verified": 0, "is_fake_discount": 0, "category": "", "mp_avg_price": null, "mp_median_price": null, "mp_listings": 0, "mp_profit": null, "country": "", "country_flag": ""}]</script>
+<script>
+// ===================== PIN SYSTEM =====================
+const PD_HASH='pd_pin_hash',PD_TRIES='pd_pin_tries',PD_LOCK='pd_pin_lock',PD_UNLOCK='pd_pin_unlock';
+const PIN_SESSION=4*60*60*1000,MAX_TRIES=5,LOCKOUT=15*60*1000;
+let pinBuf='',pinMode='enter',pinNew='';
+
+async function hashPin(p){
+  const d=new TextEncoder().encode('deef-pricedrop-2026-'+p);
+  const b=await crypto.subtle.digest('SHA-256',d);
+  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+function getHash(){return localStorage.getItem(PD_HASH)}
+function isLocked(){return Date.now()<+(localStorage.getItem(PD_LOCK)||0)}
+function lockMins(){return Math.ceil((+(localStorage.getItem(PD_LOCK)||0)-Date.now())/60000)}
+function recFail(){
+  const t=+(localStorage.getItem(PD_TRIES)||0)+1;
+  if(t>=MAX_TRIES){localStorage.setItem(PD_LOCK,''+(Date.now()+LOCKOUT));localStorage.removeItem(PD_TRIES);return true}
+  localStorage.setItem(PD_TRIES,''+t);return false;
+}
+function clrFail(){localStorage.removeItem(PD_TRIES);localStorage.removeItem(PD_LOCK)}
+
+function initPin(){
+  if(Date.now()<+(localStorage.getItem(PD_UNLOCK)||0)){showApp();return}
+  if(!getHash()){pinMode='set-new';document.getElementById('pin-lbl').textContent='Kies een PIN van 6 cijfers'}
+  else{pinMode='enter';document.getElementById('pin-lbl').textContent='Voer je PIN in'}
+}
+
+function pinPress(d){
+  if(isLocked()){document.getElementById('pin-lbl').textContent=`Geblokkeerd — ${lockMins()} min`;return}
+  if(pinBuf.length>=6)return;
+  pinBuf+=d;renderDots();
+  document.getElementById('pin-err').classList.add('h');
+  if(pinBuf.length===6)setTimeout(handlePin,120);
+}
+function pinBack(){if(!pinBuf.length)return;pinBuf=pinBuf.slice(0,-1);renderDots()}
+function renderDots(s){document.querySelectorAll('.pin-dot').forEach((d,i)=>{d.classList.remove('ok','err');if(s==='err')d.classList.add('err');else if(i<pinBuf.length)d.classList.add('ok')})}
+function pinErr(m){const e=document.getElementById('pin-err');e.textContent=m||'Onjuiste PIN';e.classList.remove('h');renderDots('err');setTimeout(()=>{pinBuf='';renderDots()},700)}
+
+async function handlePin(){
+  if(isLocked()){document.getElementById('pin-lbl').textContent=`Geblokkeerd — ${lockMins()} min`;pinBuf='';renderDots();return}
+  const h=await hashPin(pinBuf);
+  if(pinMode==='enter'){
+    if(h===getHash()){clrFail();localStorage.setItem(PD_UNLOCK,''+(Date.now()+PIN_SESSION));showApp()}
+    else{const l=recFail();if(l){document.getElementById('pin-lbl').textContent=`Geblokkeerd — ${lockMins()} min`;document.querySelectorAll('.pin-b').forEach(b=>b.disabled=true);pinBuf='';renderDots()}else{const left=MAX_TRIES-+(localStorage.getItem(PD_TRIES)||0);pinErr(`Onjuiste PIN — nog ${left}`)}}
+  }else if(pinMode==='set-new'){
+    pinNew=pinBuf;pinMode='confirm';pinBuf='';renderDots();document.getElementById('pin-lbl').textContent='Bevestig je PIN';
+  }else if(pinMode==='confirm'){
+    if(pinBuf===pinNew){localStorage.setItem(PD_HASH,h);localStorage.setItem(PD_UNLOCK,''+(Date.now()+PIN_SESSION));showApp()}
+    else{pinErr('PINs komen niet overeen');setTimeout(()=>{pinMode='set-new';pinNew='';document.getElementById('pin-lbl').textContent='Kies een PIN van 6 cijfers';document.getElementById('pin-err').classList.add('h')},800)}
+  }
+}
+
+function showApp(){
+  document.getElementById('pin-s').classList.add('hidden');
+  const app=document.getElementById('app');app.classList.add('show');
+  render();
+}
+
+// ===================== DEAL DATA =====================
+const ST='03-04-2026 20:21';
+let D=[],P=168,S='discount_percent',Q='',MP=0,HIDE_NEP=true,ONLY_VERI=false;
+try{const r=document.getElementById('dd').textContent.trim();if(r&&!r.includes('__'))D=JSON.parse(r)}catch(e){}
+
+// Scan status
+if(ST&&!ST.includes('__')){
+  const p=ST.match(/(\d{2})-(\d{2})-(\d{4})\s(\d{2}):(\d{2})/);
+  if(p){const sd=new Date(+p[3],+p[2]-1,+p[1],+p[4],+p[5]);const m=Math.floor((Date.now()-sd.getTime())/60000);
+    const el=document.getElementById('sp'),t=document.getElementById('st');
+    if(m<60){t.textContent=m+'m geleden';el.className='sp sp-ok'}
+    else if(m<240){t.textContent=Math.floor(m/60)+'u geleden';el.className='sp sp-w'}
+    else{t.textContent=Math.floor(m/60)+'u geleden';el.className='sp sp-x'}
+  }
+}
+
+// Controls
+const thr=document.getElementById('thr'),thrV=document.getElementById('thrV');
+const mpEl=document.getElementById('mp'),mpV=document.getElementById('mpV');
+const qEl=document.getElementById('q');
+const g=k=>localStorage.getItem('pd6_'+k);
+if(g('t'))thr.value=g('t');if(g('m'))mpEl.value=g('m');
+thrV.textContent=thr.value+'%';MP=+mpEl.value;mpV.textContent='€'+MP;
+
+thr.addEventListener('input',()=>{thrV.textContent=thr.value+'%';localStorage.setItem('pd6_t',thr.value);render()});
+mpEl.addEventListener('input',()=>{MP=+mpEl.value;mpV.textContent='€'+MP;localStorage.setItem('pd6_m',mpEl.value);render()});
+qEl.addEventListener('input',()=>{Q=qEl.value.toLowerCase();render()});
+
+document.getElementById('fb').addEventListener('click',e=>{
+  const b=e.target.closest('.fb');if(!b)return;
+  if(b.dataset.h){document.querySelectorAll('[data-h]').forEach(x=>x.classList.remove('on'));b.classList.add('on');P=+b.dataset.h;render()}
+  if(b.dataset.s){document.querySelectorAll('[data-s]').forEach(x=>x.classList.remove('on'));b.classList.add('on');S=b.dataset.s;render()}
+  if(b.dataset.tog==='nep'){HIDE_NEP=!HIDE_NEP;b.classList.toggle('on',HIDE_NEP);render()}
+  if(b.dataset.tog==='veri'){ONLY_VERI=!ONLY_VERI;b.classList.toggle('on',ONLY_VERI);render()}
+});
+
+function flt(){
+  const md=+thr.value,co=Date.now()-P*36e5;
+  return D.filter(d=>{
+    if(d.discount_percent<md)return false;
+    if(d.current_price<MP)return false;
+    if(d.found_at&&new Date(d.found_at).getTime()<co)return false;
+    if(Q&&!d.product_name.toLowerCase().includes(Q))return false;
+    if(HIDE_NEP&&d.is_fake_discount)return false;
+    if(ONLY_VERI&&!d.is_verified)return false;
+    return true;
+  }).sort((a,b)=>{
+    if(S==='mp_profit')return(b.mp_profit||0)-(a.mp_profit||0);
+    if(S==='found_at')return new Date(b.found_at||0)-new Date(a.found_at||0);
+    if(S==='current_price')return a.current_price-b.current_price;
+    return(b.real_discount_percent||b.discount_percent)-(a.real_discount_percent||a.discount_percent);
+  });
+}
+
+function render(){
+  const ds=flt();
+  document.getElementById('cnt').textContent=ds.length+' deals';
+  const el=document.getElementById('dl');
+  if(!ds.length){el.innerHTML='<div class="empty"><b>🔍</b>Geen deals gevonden</div>';return}
+
+  el.innerHTML=ds.map(d=>{
+    const disc=d.real_discount_percent||d.discount_percent;
+    const bc=disc>=60?'b-h':disc>=40?'b-w':'b-c';
+    const fc=d.is_fake_discount?' fake':'';
+    const vc=(d.is_verified&&!d.is_fake_discount)?' veri':'';
+    const t=d.found_at?new Date(d.found_at).toLocaleString('nl-NL',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+    const shop=d.shop.split('(')[0].trim();
+    const flag=d.country_flag||'';
+    const ship=d.shipping_cost||0;
+
+    let tags='';
+    if(d.mp_median_price){const pr=(d.mp_profit||0)-ship;tags+=`<span class="tag tag-m">MP €${d.mp_median_price.toFixed(0)}</span><span class="tag ${pr>=0?'tag-g':'tag-r'}">${pr>=0?'+':''}€${pr.toFixed(0)} netto</span>`}
+    else if(!d.is_fake_discount){const est=(d.market_price||d.original_price)*.7-d.current_price-ship;if(est>0)tags+=`<span class="tag tag-g">~+€${est.toFixed(0)}</span>`}
+    if(d.is_verified&&!d.is_fake_discount)tags+=`<span class="tag tag-g">ECHT</span>`;
+    if(d.market_price&&!d.is_fake_discount)tags+=`<span class="tag tag-b">Markt €${d.market_price.toFixed(0)}</span>`;
+    if(d.shipping_free)tags+=`<span class="tag tag-g">Gratis verzend</span>`;
+    else if(ship>0)tags+=`<span class="tag tag-m">+€${ship.toFixed(0)} verzend</span>`;
+    if(d.coupon_code)tags+=`<span class="tag tag-c">CODE: ${d.coupon_code}</span>`;
+
+    let nep='';
+    if(d.is_fake_discount&&d.market_price){const rd=d.market_price>d.current_price?((d.market_price-d.current_price)/d.market_price*100):0;
+      nep=`<div style="background:#fff0ef;border-radius:6px;padding:3px 7px;font-size:10px;color:#e53e3e;margin-top:1px"><b>NEP</b> Echte marktprijs: €${d.market_price.toFixed(0)} (${rd.toFixed(0)}% korting)</div>`}
+
+    return`<a href="${d.url}" target="_blank" rel="noopener" class="dc${fc}${vc}">
+<div class="dc1"><div class="dc-n">${d.product_name}</div><div class="badge ${bc}">-${disc.toFixed(0)}%</div></div>
+<div class="dc2"><span class="dc-p">€${d.current_price.toFixed(2)}</span><span class="dc-was">€${d.original_price.toFixed(0)}</span><span class="dc-shop">${flag} ${shop}</span></div>
+<div class="dc3">${tags}<span class="dc-t">${t}</span></div>${nep}</a>`;
+  }).join('');
+}
+
+initPin();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/pricedrop/pricedrop_sw.js').catch(()=>{});
+</script>
+</body>
+</html>

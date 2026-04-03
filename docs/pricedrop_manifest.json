@@ -1,0 +1,17 @@
+{
+  "name": "PriceDrop Scanner",
+  "short_name": "PriceDrop",
+  "description": "Prijsfout-detector voor NL & DE webshops",
+  "start_url": "/pricedrop/",
+  "display": "standalone",
+  "background_color": "#fff6ed",
+  "theme_color": "#ff7a1a",
+  "icons": [
+    {
+      "src": "/pricedrop/pricedrop_icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
