@@ -17,6 +17,18 @@
   const GITHUB_REPO = 'thegaveryahoo/pricedrop';
   const SCROLL_DELAY = 600;
   const PAGE_LOAD_DELAY = 2000;
+  const CONSECUTIVE_LOW_PAGES = 3; // Stop na X pagina's zonder deals
+
+  // === KLEDING / MAAT FILTER ===
+  const BLOCKED_KEYWORDS = [
+    'shirt', 't-shirt', 'trui', 'broek', 'jas', 'schoen', 'sneaker',
+    'sandaal', 'sok', 'boxer', 'slip', 'jurk', 'rok', 'vest', 'blazer',
+    'polo', 'hoodie', 'sweater', 'jeans', 'legging', 'panty', 'bikini',
+    'badpak', 'pyjama', 'onderbroek', 'bh', 'lingerie', 'colbert',
+    'blouse', 'tuniek', 'cardigan', 'parka', 'regenjas', 'winterjas',
+    'sneakers', 'laarzen', 'pumps', 'slippers', 'espadrilles',
+  ];
+  const SIZE_REGEX = /\b(XXS|XS|S\/M|M\/L|L\/XL|X{0,3}[SML]|3XL|4XL|5XL|\d{2}\/\d{2}|maat\s*\d{2,3})\b/i;
 
   // === STATE ===
   let allDeals = [];
@@ -129,6 +141,9 @@
   function buildPageUrl(pageNum) {
     const url = new URL(window.location.href);
     url.searchParams.set('page', pageNum);
+    // Sorteer op korting (hoogste eerst) zodat we vroeg kunnen stoppen
+    url.searchParams.set('sort', 'discount');
+    url.searchParams.set('order', 'desc');
     return url.toString();
   }
 
@@ -339,6 +354,15 @@
     } catch(e) { return null; }
   }
 
+  function isClothingOrSized(name) {
+    const lower = name.toLowerCase();
+    for (const kw of BLOCKED_KEYWORDS) {
+      if (lower.includes(kw)) return true;
+    }
+    if (SIZE_REGEX.test(name)) return true;
+    return false;
+  }
+
   function buildDeal(name, url, curPrice, origPrice) {
     if (!curPrice || !origPrice || origPrice <= curPrice || curPrice <= 0) return null;
     if (origPrice / curPrice > 50) return null;
@@ -351,6 +375,9 @@
     if (eurosOff < MIN_EUROS_OFF) return null;
 
     name = name.replace(/€\s*[\d.,]+/g, '').replace(/\s+/g, ' ').trim();
+
+    // Filter kleding en maat-specifieke items
+    if (isClothingOrSized(name)) return null;
 
     return {
       product_name: name.substring(0, 200),
@@ -502,7 +529,9 @@
     displayDeals();
     setProgress(Math.round((1 / totalPages) * 100));
 
-    // Stap 3: Loop door alle volgende pagina's
+    // Stap 3: Loop door alle volgende pagina's (stop vroeg als korting te laag wordt)
+    let consecutiveEmptyPages = 0;
+
     for (let page = 2; page <= totalPages; page++) {
       currentPage = page;
       setPage(`Pagina ${page} van ${totalPages}`);
@@ -510,23 +539,20 @@
 
       const doc = await goToPage(page);
       if (!doc) {
-        // Kon pagina niet laden via fetch, probeer directe navigatie
         setStatus(`Pagina ${page}: directe navigatie nodig...`);
         const nextBtn = findPageLink(page);
         if (nextBtn) {
-          // Sla huidige deals op in sessionStorage voor na navigatie
           sessionStorage.setItem('ibood_scanner_deals', JSON.stringify(allDeals));
           sessionStorage.setItem('ibood_scanner_seen', JSON.stringify([...seenUrls]));
           sessionStorage.setItem('ibood_scanner_page', String(page));
           sessionStorage.setItem('ibood_scanner_total', String(totalPages));
           nextBtn.click();
-          return; // Script herstart na navigatie
+          return;
         }
         setStatus(`Pagina ${page} overgeslagen (niet bereikbaar)`);
         continue;
       }
 
-      // Scroll als het de live pagina is
       if (doc === document) {
         await scrollPage(doc);
       }
@@ -538,7 +564,17 @@
       setProgress(Math.round((page / totalPages) * 100));
       setStatus(`Pagina ${page}/${totalPages}: ${pageDeals.length} deals gevonden (totaal: ${allDeals.length})`);
 
-      // Korte pauze om de server niet te overbelasten
+      // Early-stop: als X pagina's achter elkaar 0 deals opleveren, stoppen
+      if (pageDeals.length === 0) {
+        consecutiveEmptyPages++;
+        if (consecutiveEmptyPages >= CONSECUTIVE_LOW_PAGES) {
+          setStatus(`Gestopt na ${page} pagina's — ${CONSECUTIVE_LOW_PAGES} pagina's zonder deals. Totaal: ${allDeals.length} deals.`);
+          break;
+        }
+      } else {
+        consecutiveEmptyPages = 0;
+      }
+
       await new Promise(r => setTimeout(r, 500));
     }
 
@@ -584,7 +620,7 @@
   // === START ===
   if (!window.location.hostname.includes('ibood')) {
     if (confirm('Dit script werkt op ibood.com. Wil je daarheen navigeren?')) {
-      window.location.href = 'https://www.ibood.com/nl/s-nl/all-offers';
+      window.location.href = 'https://www.ibood.com/nl/s-nl/all-offers?sort=discount&order=desc';
     }
     return;
   }

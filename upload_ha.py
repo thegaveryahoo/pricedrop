@@ -71,7 +71,7 @@ def generate_html():
     html = html.replace("__VERSION__", version)
     html = html.replace("__SCAN_TIME__", now)
     html = html.replace("__SCAN_SHOPS__", str(shops_count))
-    html = html.replace("__APP_VERSION__", "3.0.0")
+    html = html.replace("__APP_VERSION__", "3.1.0")
 
     return html
 
