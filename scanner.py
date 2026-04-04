@@ -1,6 +1,6 @@
 """
 PriceDrop Scanner v2 — Hoofdscript
-Scrapt 12+ webshops, verifieert prijzen tegen marktwaarde, detecteert nep-kortingen.
+Scrapt 14+ webshops incl. Tweakers Pricewatch, verifieert prijzen tegen marktwaarde, detecteert nep-kortingen.
 
 Gebruik:
     python scanner.py          # Eenmalige scan
@@ -25,6 +25,7 @@ from notifier import notify_deal, generate_html_report, send_windows_notificatio
 # Importeer alle scrapers
 from scrapers import bolcom, coolblue, amazon_nl, amazon_de, mediamarkt
 from scrapers import pepper, mydealz, alternate, megekko, wehkamp, bcc, saturn, ibood
+from scrapers import tweakers
 
 SCRAPER_MAP = {
     "bolcom": bolcom,
@@ -34,6 +35,7 @@ SCRAPER_MAP = {
     "mediamarkt": mediamarkt,
     "pepper": pepper,
     "mydealz": mydealz,
+    "tweakers": tweakers,
     "alternate": alternate,
     "megekko": megekko,
     "wehkamp": wehkamp,
@@ -51,6 +53,7 @@ SHOP_COUNTRY = {
     "amazon_nl": "NL", "alternate": "NL", "megekko": "NL",
     "bcc": "NL", "wehkamp": "NL", "ibood": "NL",
     "pepper": "NL",  # nl.pepper.com = NL deals
+    "tweakers": "NL",  # Tweakers Pricewatch = NL prijsvergelijker
     "amazon_de": "DE", "saturn": "DE", "mydealz": "DE",
 }
 
@@ -336,6 +339,8 @@ def run_scan():
                                 result["market_price"],
                                 result["real_discount_percent"],
                                 result["is_fake_discount"],
+                                tweakers_price=result.get("tweakers_price"),
+                                verification_source=result.get("verification_source", ""),
                             )
                             # Update ook het in-memory deal object
                             deal["market_price"] = result["market_price"]
@@ -412,14 +417,7 @@ def run_scan():
     if not new_deals:
         print(f"\nGeen nieuwe deals gevonden.")
 
-    # === STAP 6: Upload naar HA + GitHub Pages ===
-    try:
-        from upload_ha import upload
-        print("\n--- Upload naar Home Assistant ---")
-        upload()
-    except Exception as e:
-        print(f"[Upload] HA upload mislukt: {e}")
-
+    # === STAP 6: Deploy naar GitHub Pages ===
     try:
         from deploy_github import deploy
         print("\n--- Deploy naar GitHub Pages ---")

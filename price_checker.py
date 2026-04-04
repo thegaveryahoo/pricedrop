@@ -1,10 +1,11 @@
 """
 PriceDrop Scanner v2 — Prijsverificatie
-Checkt de ECHTE marktprijs via Idealo.nl en Google Shopping.
+Checkt de ECHTE marktprijs via Tweakers Pricewatch, Idealo.nl en Google Shopping.
 Detecteert nep-kortingen (opgeblazen "was-prijzen").
 
 v2.1: Volledig herschreven — oude versie gaf altijd €33 terug door
 te brede selectors en min() over alle €-bedragen op de pagina.
+v3.2: Tweakers Pricewatch als primaire verificatiebron toegevoegd.
 """
 
 import re
@@ -278,13 +279,33 @@ def verify_deal(deal, browser_context):
     original_price = deal["original_price"]
     shop_discount = deal["discount_percent"]
 
-    # Probeer Idealo eerst (meest betrouwbaar voor NL)
-    market_price = search_idealo(product_name, browser_context, current_price, original_price)
-    respectful_delay()
+    tweakers_price = None
+    verification_source = ""
 
-    # Fallback naar Google Shopping
+    # Probeer Tweakers Pricewatch eerst (meest betrouwbaar voor NL)
+    try:
+        from scrapers.tweakers import search_tweakers_price
+        market_price = search_tweakers_price(product_name, browser_context, current_price, original_price)
+        if market_price:
+            tweakers_price = market_price
+            verification_source = "tweakers"
+            print(f"    [Tweakers] Marktprijs gevonden: €{market_price:.2f}")
+        respectful_delay()
+    except Exception:
+        market_price = None
+
+    # Fallback 1: Idealo
+    if market_price is None:
+        market_price = search_idealo(product_name, browser_context, current_price, original_price)
+        if market_price:
+            verification_source = "idealo"
+        respectful_delay()
+
+    # Fallback 2: Google Shopping
     if market_price is None:
         market_price = search_google_shopping(product_name, browser_context, current_price, original_price)
+        if market_price:
+            verification_source = "google"
         respectful_delay()
 
     if market_price is None:
@@ -293,6 +314,8 @@ def verify_deal(deal, browser_context):
             "real_discount_percent": None,
             "is_verified": False,
             "is_fake_discount": False,
+            "tweakers_price": None,
+            "verification_source": "",
         }
 
     # Sanity check: als de marktprijs onrealistisch is, verwerp
@@ -304,6 +327,8 @@ def verify_deal(deal, browser_context):
             "real_discount_percent": None,
             "is_verified": False,
             "is_fake_discount": False,
+            "tweakers_price": None,
+            "verification_source": "",
         }
 
     # Bereken de ECHTE korting (vs marktprijs, niet vs "was-prijs")
@@ -326,6 +351,8 @@ def verify_deal(deal, browser_context):
         "real_discount_percent": round(real_discount, 1),
         "is_verified": True,
         "is_fake_discount": is_fake,
+        "tweakers_price": round(tweakers_price, 2) if tweakers_price else None,
+        "verification_source": verification_source,
     }
 
 

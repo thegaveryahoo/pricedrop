@@ -110,6 +110,14 @@ def init_db():
         c.execute("ALTER TABLE deals ADD COLUMN country_flag TEXT DEFAULT ''")
     except sqlite3.OperationalError:
         pass
+    try:
+        c.execute("ALTER TABLE deals ADD COLUMN tweakers_price REAL DEFAULT NULL")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        c.execute("ALTER TABLE deals ADD COLUMN verification_source TEXT DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass
 
     conn.commit()
     conn.close()
@@ -137,15 +145,18 @@ def save_deal(product_name, shop, current_price, original_price, discount_percen
         conn.close()
 
 
-def update_deal_verification(deal_id, market_price, real_discount_percent, is_fake_discount):
+def update_deal_verification(deal_id, market_price, real_discount_percent, is_fake_discount,
+                              tweakers_price=None, verification_source=""):
     """Update een deal met prijsverificatie-data."""
     conn = get_connection()
     c = conn.cursor()
     c.execute("""
         UPDATE deals SET market_price = ?, real_discount_percent = ?,
-        is_verified = 1, is_fake_discount = ?
+        is_verified = 1, is_fake_discount = ?,
+        tweakers_price = ?, verification_source = ?
         WHERE id = ?
-    """, (market_price, real_discount_percent, 1 if is_fake_discount else 0, deal_id))
+    """, (market_price, real_discount_percent, 1 if is_fake_discount else 0,
+          tweakers_price, verification_source, deal_id))
     conn.commit()
     conn.close()
 

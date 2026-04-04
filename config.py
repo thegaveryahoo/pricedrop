@@ -51,6 +51,8 @@ ACTIVE_SCRAPERS = [
     # Deal-aggregators (meest effectief — community-gecureerd)
     "pepper",
     "mydealz",
+    # Prijsvergelijkers
+    "tweakers",  # Tweakers Pricewatch — prijsdalingen + verificatiebron
     # NL shops
     "bolcom",
     "coolblue",

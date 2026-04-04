@@ -4,8 +4,8 @@
 
 const CACHE_NAME = 'pricedrop-v2';
 const STATIC_ASSETS = [
-  '/local/pricedrop_manifest.json',
-  '/local/pricedrop_icon.svg',
+  '/pricedrop/pricedrop_manifest.json',
+  '/pricedrop/pricedrop_icon.svg',
 ];
 
 self.addEventListener('install', event => {

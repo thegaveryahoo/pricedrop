@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="/local/pricedrop_manifest.json">
+<link rel="manifest" href="/pricedrop/pricedrop_manifest.json">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%2300d4ff'/><stop offset='100%' stop-color='%23ff8c2e'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><text x='50' y='42' text-anchor='middle' font-size='28' font-weight='bold' fill='white' font-family='system-ui'>DEEF</text><text x='50' y='72' text-anchor='middle' font-size='22' fill='rgba(255,255,255,.8)' font-family='system-ui'>DROP</text></svg>">
 <title>Deef's PriceDrop</title>
 <style>
@@ -187,6 +187,13 @@ td.name-col{white-space:normal;min-width:160px;max-width:220px;line-height:1.3;f
   <div class="clm-box">
     <button class="clm-x" onclick="document.getElementById('clm').style.display='none'">x</button>
     <h3>Changelog</h3>
+    <p>v3.2.0 &#8212; 4 apr 2026</p>
+    <ul>
+      <li>Tweakers Pricewatch integratie: deals scrapen + prijsverificatie</li>
+      <li>Verificatiebron zichtbaar per deal (Tweakers/Idealo/Google)</li>
+      <li>Tweakers marktprijs als tag in deal-info</li>
+      <li>14+ shops (Tweakers toegevoegd als bron)</li>
+    </ul>
     <p>v3.1.0 &#8212; 4 apr 2026</p>
     <ul>
       <li>Dark table layout (mobiel-geoptimaliseerd)</li>
@@ -380,7 +387,8 @@ function render(){
 
     let tags='';
     if(d.mp_median_price){const pr=(d.mp_profit||0)-ship;tags+='<span class="tag tag-b">MP \u20AC'+d.mp_median_price.toFixed(0)+'</span><span class="tag '+(pr>=0?'tag-g':'tag-r')+'">'+(pr>=0?'+':'')+'\u20AC'+pr.toFixed(0)+'</span>'}
-    if(d.is_verified&&!d.is_fake_discount)tags+='<span class="tag tag-g">ECHT</span>';
+    if(d.tweakers_price)tags+='<span class="tag tag-b" title="Tweakers Pricewatch prijs">TW \u20AC'+d.tweakers_price.toFixed(0)+'</span>';
+    if(d.is_verified&&!d.is_fake_discount){const src=d.verification_source||'';tags+='<span class="tag tag-g" title="Geverifieerd via '+(src||'onbekend')+'">ECHT'+(src?' ('+src+')':'')+'</span>'}
     if(d.is_fake_discount)tags+='<span class="tag tag-r">NEP</span>';
     if(d.coupon_code)tags+='<span class="tag tag-c">'+d.coupon_code+'</span>';
 
@@ -404,7 +412,7 @@ function render(){
 
 initPin();
 if('serviceWorker' in navigator){
-  const swPath=location.hostname.includes('github.io')?'/pricedrop/pricedrop_sw.js':'/local/pricedrop_sw.js';
+  const swPath='/pricedrop/pricedrop_sw.js';
   navigator.serviceWorker.register(swPath).then(reg=>{reg.update()}).catch(()=>{});
 }
 </script>

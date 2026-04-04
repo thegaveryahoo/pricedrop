@@ -7,19 +7,58 @@ URL: https://thegaveryahoo.github.io/pricedrop/
 
 import os
 import sys
+import json
+import sqlite3
 import subprocess
 import shutil
+from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from config import DB_PATH
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 DOCS_DIR = os.path.join(PROJECT_DIR, "docs")
+TEMPLATE_PATH = os.path.join(PROJECT_DIR, "pricedrop_app.html")
+APP_VERSION = "3.2.0"
+
+
+def get_all_deals():
+    """Haal alle deals uit de database."""
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute("SELECT * FROM deals ORDER BY discount_percent DESC")
+    deals = [dict(row) for row in c.fetchall()]
+    conn.close()
+    return deals
+
+
+def generate_html():
+    """Genereer de webapp HTML met embedded deal data."""
+    with open(TEMPLATE_PATH, "r", encoding="utf-8") as f:
+        template = f.read()
+
+    deals = get_all_deals()
+    now = datetime.now().strftime("%d-%m-%Y %H:%M")
+    version = datetime.now().strftime("%Y%m%d%H%M")
+
+    # Haal scan info op
+    from database import get_last_scan
+    last_scan = get_last_scan()
+    shops_count = last_scan["shops_scanned"] if last_scan else 0
+
+    # Vervang placeholders
+    html = template.replace("__DEAL_DATA__", json.dumps(deals, ensure_ascii=False))
+    html = html.replace("__VERSION__", version)
+    html = html.replace("__SCAN_TIME__", now)
+    html = html.replace("__SCAN_SHOPS__", str(shops_count))
+    html = html.replace("__APP_VERSION__", APP_VERSION)
+
+    return html
 
 
 def deploy():
     """Genereer HTML en push naar GitHub Pages."""
-    from upload_ha import generate_html
-
     print("[GitHub] HTML genereren...")
     html = generate_html()
 
@@ -34,34 +73,6 @@ def deploy():
         src = os.path.join(PROJECT_DIR, fname)
         if os.path.exists(src):
             shutil.copy2(src, os.path.join(DOCS_DIR, fname))
-
-    # Fix manifest paths voor GitHub Pages (geen /local/ prefix)
-    manifest_path = os.path.join(DOCS_DIR, "pricedrop_manifest.json")
-    if os.path.exists(manifest_path):
-        with open(manifest_path, "r") as f:
-            content = f.read()
-        content = content.replace("/local/pricedrop.html", "/pricedrop/")
-        content = content.replace("/local/pricedrop_icon.svg", "/pricedrop/pricedrop_icon.svg")
-        with open(manifest_path, "w") as f:
-            f.write(content)
-
-    # Fix SW paths voor GitHub Pages
-    sw_path = os.path.join(DOCS_DIR, "pricedrop_sw.js")
-    if os.path.exists(sw_path):
-        with open(sw_path, "r") as f:
-            content = f.read()
-        content = content.replace("/local/pricedrop_manifest.json", "/pricedrop/pricedrop_manifest.json")
-        content = content.replace("/local/pricedrop_icon.svg", "/pricedrop/pricedrop_icon.svg")
-        with open(sw_path, "w") as f:
-            f.write(content)
-
-    # Fix HTML: manifest en SW paths
-    with open(index_path, "r", encoding="utf-8") as f:
-        html = f.read()
-    html = html.replace('href="/local/pricedrop_manifest.json"', 'href="/pricedrop/pricedrop_manifest.json"')
-    html = html.replace("'/local/pricedrop_sw.js'", "'/pricedrop/pricedrop_sw.js'")
-    with open(index_path, "w", encoding="utf-8") as f:
-        f.write(html)
 
     print(f"[GitHub] docs/index.html geschreven ({len(html)} bytes)")
 
