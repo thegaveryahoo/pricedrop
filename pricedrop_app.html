@@ -206,6 +206,11 @@ td.name-col{white-space:normal;min-width:160px;max-width:220px;line-height:1.3;f
   <div class="clm-box">
     <button class="clm-x" onclick="document.getElementById('clm').style.display='none'">x</button>
     <h3>Changelog</h3>
+    <p>v3.4.0 &#8212; 4 apr 2026</p>
+    <ul>
+      <li>Tweakers scraper gefixt: juiste URL (/pricewatch/deals/) + CSS selectors</li>
+      <li>PAT via URL parameter: open ?pat=TOKEN op telefoon om SCAN knop te activeren</li>
+    </ul>
     <p>v3.3.0 &#8212; 4 apr 2026</p>
     <ul>
       <li>SCAN knop: start scan direct vanuit de app (via GitHub Actions)</li>
@@ -444,6 +449,9 @@ function render(){
 const GH_REPO='thegaveryahoo/pricedrop';
 const GH_WORKFLOW='scan.yml';
 const PAT_KEY='pd_github_pat';
+
+// Auto-save PAT from URL parameter (?pat=ghp_xxx)
+(function(){const u=new URLSearchParams(location.search);const p=u.get('pat');if(p){localStorage.setItem(PAT_KEY,p);history.replaceState(null,'',location.pathname)}})();
 
 function getPat(){return localStorage.getItem(PAT_KEY)}
 function savePat(){

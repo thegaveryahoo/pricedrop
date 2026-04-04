@@ -13,59 +13,31 @@ from scrapers.base import parse_dutch_price, respectful_delay
 
 # Tweakers Pricewatch pagina's met prijsdalingen
 TWEAKERS_URLS = [
-    "https://tweakers.net/aanbiedingen/",                    # Huidige aanbiedingen
-    "https://tweakers.net/pricewatch/besteselectie/",        # Beste selectie deals
+    "https://tweakers.net/pricewatch/deals/",       # Prijsdalingen
+    "https://tweakers.net/pricewatch/deals/?page=2", # Pagina 2
 ]
 
 
 def _extract_deals_from_page(page):
-    """Haal deals uit een Tweakers aanbiedingen/pricewatch pagina."""
+    """Haal deals uit een Tweakers Pricewatch deals pagina."""
     deals = []
     seen_urls = set()
 
-    # Tweakers deal listings — probeer meerdere selectors
-    selectors = [
-        # Aanbiedingen pagina
-        'tr.largethumb, tr.listing',
-        # Pricewatch listing items
-        '[class*="listing--"] a[href*="/pricewatch/"]',
-        '.listingContainer tr',
-        # Generieke product links
-        'article, .product-card, [class*="productCard"]',
-    ]
+    # Tweakers deals pagina: table.listing met tr rijen
+    rows = page.query_selector_all('table.listing tr')
 
-    articles = []
-    for sel in selectors:
-        articles = page.query_selector_all(sel)
-        if articles:
-            break
-
-    # Fallback: zoek alle links met pricewatch
-    if not articles:
-        articles = page.query_selector_all('a[href*="/pricewatch/"]')
-
-    for article in articles:
+    for row in rows:
         try:
-            # Productnaam
-            name = None
-            name_el = article.query_selector('a[href*="/pricewatch/"], h3, .title, p.title')
-            if name_el:
-                name = name_el.inner_text().strip()
-            if not name:
-                # Probeer de hele tekst als het een link is
-                tag = article.evaluate("el => el.tagName")
-                if tag == 'A':
-                    name = article.inner_text().strip()
+            # Productnaam via td.itemname a.editionName
+            name_el = row.query_selector('td.itemname a.editionName')
+            if not name_el:
+                continue
+            name = name_el.inner_text().strip()
             if not name or len(name) < 5:
                 continue
 
             # URL
-            url = None
-            link_el = article.query_selector('a[href*="/pricewatch/"], a[href*="tweakers.net"]')
-            if link_el:
-                url = link_el.get_attribute("href")
-            elif article.evaluate("el => el.tagName") == 'A':
-                url = article.get_attribute("href")
+            url = name_el.get_attribute("href")
             if not url:
                 continue
             if not url.startswith("http"):
@@ -77,41 +49,27 @@ def _extract_deals_from_page(page):
                 continue
             seen_urls.add(base_url)
 
-            # Prijzen extraheren
+            # Huidige prijs via td.price-score p.price
             current_price = None
+            price_el = row.query_selector('td.price-score p.price')
+            if price_el:
+                current_price = parse_dutch_price(price_el.inner_text())
+
+            # Originele prijs via td.price-score p.beforePrice
             original_price = None
+            before_el = row.query_selector('td.price-score p.beforePrice')
+            if before_el:
+                original_price = parse_dutch_price(before_el.inner_text())
 
-            # Zoek doorgestreepte (oude) prijs
-            strike_el = article.query_selector('s, del, [class*="oldPrice"], [class*="was-price"], [style*="line-through"]')
-            if strike_el:
-                original_price = parse_dutch_price(strike_el.inner_text())
-
-            # Zoek huidige prijs
-            price_selectors = [
-                '[class*="price"]:not(s):not(del)',
-                '.price, .currentPrice',
-                'td:last-child',
-            ]
-            for psel in price_selectors:
-                pel = article.query_selector(psel)
-                if pel:
-                    p = parse_dutch_price(pel.inner_text())
-                    if p and p > 0:
-                        current_price = p
-                        break
-
-            # Fallback: regex alle prijzen in het element
-            if not current_price:
-                text = article.inner_text()
-                prices = []
-                for m in re.findall(r'€\s*([\d.,]+)', text):
-                    p = parse_dutch_price(f"€{m}")
-                    if p and p > 0:
-                        prices.append(p)
-                if prices:
-                    current_price = min(prices)
-                    if len(prices) >= 2:
-                        original_price = max(prices)
+            # Korting% via td.discountRow a.discount
+            page_discount = None
+            discount_el = row.query_selector('td.discountRow a.discount')
+            if discount_el:
+                discount_text = discount_el.inner_text().strip().replace('%', '')
+                try:
+                    page_discount = abs(float(discount_text))
+                except ValueError:
+                    pass
 
             if not current_price:
                 continue
@@ -119,21 +77,25 @@ def _extract_deals_from_page(page):
             # Bereken korting
             if original_price and original_price > current_price:
                 discount = ((original_price - current_price) / original_price) * 100
+            elif page_discount:
+                discount = page_discount
+                # Bereken originele prijs uit discount
+                if discount > 0:
+                    original_price = round(current_price / (1 - discount / 100), 2)
             else:
-                continue  # Zonder originele prijs kunnen we geen korting berekenen
+                continue
 
             # Sanity check
-            if current_price >= original_price:
+            if original_price and current_price >= original_price:
                 continue
-            ratio = original_price / current_price
-            if ratio > 50:
+            if original_price and original_price / current_price > 50:
                 continue
 
             deals.append({
                 "product_name": name[:200],
                 "shop": "Tweakers Pricewatch",
                 "current_price": round(current_price, 2),
-                "original_price": round(original_price, 2),
+                "original_price": round(original_price, 2) if original_price else round(current_price * 1.5, 2),
                 "discount_percent": round(discount, 1),
                 "url": url,
                 "_country": "NL",
@@ -141,83 +103,6 @@ def _extract_deals_from_page(page):
 
         except Exception:
             continue
-
-    return deals
-
-
-def _scrape_pricewatch_drops(page):
-    """
-    Scrape Tweakers Pricewatch prijsdalingen — alternatieve methode.
-    Kijkt naar de body tekst en zoekt producten met prijsdalingen.
-    """
-    deals = []
-    seen_urls = set()
-
-    try:
-        # Zoek alle product-rijen met prijsinformatie
-        rows = page.query_selector_all('tr, .listing, [class*="product"]')
-
-        for row in rows:
-            try:
-                text = row.inner_text().strip()
-                if not text or len(text) < 20:
-                    continue
-
-                # Zoek prijzen in de rij
-                price_matches = re.findall(r'€\s*([\d.,]+)', text)
-                prices = []
-                for m in price_matches:
-                    p = parse_dutch_price(f"€{m}")
-                    if p and 1 < p < 50000:
-                        prices.append(p)
-
-                if len(prices) < 2:
-                    continue
-
-                # Laagste = huidige prijs, hoogste = oude prijs
-                current_price = min(prices)
-                original_price = max(prices)
-
-                if current_price >= original_price:
-                    continue
-
-                discount = ((original_price - current_price) / original_price) * 100
-                if discount < 15:
-                    continue
-
-                # URL zoeken
-                link = row.query_selector('a[href*="/pricewatch/"], a[href*="tweakers.net"]')
-                if not link:
-                    continue
-                url = link.get_attribute("href") or ""
-                if not url.startswith("http"):
-                    url = f"https://tweakers.net{url}"
-
-                base_url = url.split("?")[0].split("#")[0]
-                if base_url in seen_urls:
-                    continue
-                seen_urls.add(base_url)
-
-                # Naam
-                name = link.inner_text().strip()
-                if not name or len(name) < 5:
-                    continue
-
-                deals.append({
-                    "product_name": name[:200],
-                    "shop": "Tweakers Pricewatch",
-                    "current_price": round(current_price, 2),
-                    "original_price": round(original_price, 2),
-                    "discount_percent": round(discount, 1),
-                    "url": url,
-                    "_country": "NL",
-                })
-
-            except Exception:
-                continue
-
-    except Exception:
-        pass
 
     return deals
 
@@ -237,9 +122,8 @@ def scrape(browser):
             # Accepteer cookies
             try:
                 cookie_btn = page.query_selector(
-                    'button[id*="accept"], [class*="cookie"] button, '
-                    '[data-testid*="accept"], button:has-text("Akkoord"), '
-                    'button:has-text("Accepteren")'
+                    'button[id*="accept"], button:has-text("Akkoord"), '
+                    'button:has-text("Accepteren"), [data-testid*="accept"]'
                 )
                 if cookie_btn:
                     cookie_btn.click()
@@ -247,22 +131,7 @@ def scrape(browser):
             except Exception:
                 pass
 
-            # Scroll voor meer content
-            for _ in range(3):
-                page.evaluate("window.scrollBy(0, window.innerHeight)")
-                page.wait_for_timeout(800)
-
-            # Methode 1: standaard deal extractie
             found = _extract_deals_from_page(page)
-
-            # Methode 2: prijsdalingen rijen
-            if len(found) < 3:
-                found2 = _scrape_pricewatch_drops(page)
-                # Voeg toe wat we nog niet hebben
-                for d in found2:
-                    base = d["url"].split("?")[0].split("#")[0]
-                    if base not in seen_urls:
-                        found.append(d)
 
             for d in found:
                 base = d["url"].split("?")[0].split("#")[0]
@@ -270,7 +139,10 @@ def scrape(browser):
                     seen_urls.add(base)
                     deals.append(d)
 
-            print(f"[Tweakers] {len(found)} deals op {url.split('/')[-2] or url.split('/')[-1]}")
+            label = url.split('/')[-1] or url.split('/')[-2]
+            if '?' in label:
+                label = label.split('?')[0] or 'deals'
+            print(f"[Tweakers] {len(found)} deals op {label}")
             page.close()
             respectful_delay()
 
@@ -317,52 +189,42 @@ def search_tweakers_price(product_name, browser_context, deal_price=None, origin
 
         prices = []
 
-        # Methode 1: Zoekresultaten met prijzen
-        price_elements = page.query_selector_all(
-            '.price, [class*="price"], [class*="Price"]'
-        )
-        for el in price_elements:
-            p = parse_dutch_price(el.inner_text())
-            if p and 1 < p < 50000:
-                prices.append(p)
+        # Methode 1: Pricewatch product kaarten bovenaan zoekresultaten
+        # .tweakbaseGrid li → div.price a (laatste a = prijs)
+        price_cards = page.query_selector_all('.tweakbaseGrid li')
+        for card in price_cards:
+            price_links = card.query_selector_all('div.price a')
+            if price_links:
+                # Laatste link in div.price bevat de prijs ("vanaf €X")
+                price_text = price_links[-1].inner_text()
+                p = parse_dutch_price(price_text)
+                if p and 1 < p < 50000:
+                    prices.append(p)
 
-        # Methode 2: Klik op eerste Pricewatch resultaat en haal prijzen op
+        # Methode 2: Klik op eerste Pricewatch resultaat voor shop-prijzen
         if not prices:
-            first_result = page.query_selector(
-                'a[href*="/pricewatch/"], .searchResult a[href*="tweakers.net"]'
-            )
-            if first_result:
-                href = first_result.get_attribute("href")
+            first_card = page.query_selector('.tweakbaseGrid a.thumb[href*="vergelijken"]')
+            if not first_card:
+                first_card = page.query_selector('.tweakbaseGrid p.title a')
+            if first_card:
+                href = first_card.get_attribute("href")
                 if href:
                     if not href.startswith("http"):
                         href = f"https://tweakers.net{href}"
                     page.goto(href, timeout=15000)
                     page.wait_for_timeout(2000)
 
-                    # Op productpagina: haal shop-prijzen op
-                    shop_prices = page.query_selector_all(
-                        '.shop-offer__price, [class*="offerPrice"], '
-                        'table.pricing td.price, [class*="shop-price"], '
-                        '[class*="priceAmount"]'
-                    )
-                    for el in shop_prices:
-                        p = parse_dutch_price(el.inner_text())
-                        if p and 1 < p < 50000:
-                            prices.append(p)
+                    # Op productpagina: zoek prijzen
+                    for sel in ['.shop-offer__price', 'p.price', '[class*="price"]']:
+                        elements = page.query_selector_all(sel)
+                        for el in elements:
+                            p = parse_dutch_price(el.inner_text())
+                            if p and 1 < p < 50000:
+                                prices.append(p)
+                        if prices:
+                            break
 
-                    # Fallback: "vanaf" prijs
-                    if not prices:
-                        try:
-                            main = page.query_selector('main, [role="main"], #content')
-                            text = main.inner_text() if main else page.inner_text("body")
-                            for m in re.findall(r'(?:vanaf|laagste|prijs)\s*€\s*([\d.,]+)', text, re.IGNORECASE):
-                                p = parse_dutch_price(f"€{m}")
-                                if p and 1 < p < 50000:
-                                    prices.append(p)
-                        except Exception:
-                            pass
-
-                    # Fallback: alle € bedragen op de pagina
+                    # Fallback: regex € bedragen
                     if not prices:
                         try:
                             text = page.inner_text("body")
