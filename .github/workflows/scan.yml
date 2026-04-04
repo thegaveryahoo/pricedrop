@@ -10,6 +10,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: scan
+  cancel-in-progress: true
+
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -50,5 +54,7 @@ jobs:
             echo "Geen wijzigingen"
           else
             git commit -m "Update deals data [$(date +'%d-%m-%Y %H:%M')]"
+            # Pull+rebase om conflicten met lokale pushes te voorkomen
+            git pull --rebase origin master
             git push
           fi
