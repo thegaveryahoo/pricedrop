@@ -47,11 +47,26 @@ html,body{background:#0f0f1a;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans
 .logo svg{width:26px;height:26px}
 .logo b{font-size:16px;color:#e0e0e0}
 .logo b span{color:#00d4ff}
+.hdr-right{display:flex;align-items:center;gap:6px}
+.scan-btn{padding:5px 12px;border-radius:10px;border:1px solid #00d4ff;background:rgba(0,212,255,.1);color:#00d4ff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.2s}
+.scan-btn:active{transform:scale(.95);background:rgba(0,212,255,.25)}
+.scan-btn.running{opacity:.5;pointer-events:none;border-color:#ffaa00;color:#ffaa00}
+.scan-btn.err{border-color:#ff4444;color:#ff4444}
 .sp{font-size:11px;padding:3px 9px;border-radius:14px;display:flex;align-items:center;gap:4px;font-weight:600}
 .sp .d{width:7px;height:7px;border-radius:50%}
 .sp-ok{background:rgba(0,255,136,.1);color:#00ff88}.sp-ok .d{background:#00ff88}
 .sp-w{background:rgba(255,170,0,.1);color:#ffaa00}.sp-w .d{background:#ffaa00}
 .sp-x{background:rgba(255,68,68,.1);color:#ff4444}.sp-x .d{background:#ff4444}
+.scan-time{font-size:11px;color:#888;text-align:right;margin-top:2px;padding:0 2px}
+.pat-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;align-items:center;justify-content:center}
+.pat-box{background:#16163a;border-radius:16px;padding:24px;max-width:380px;width:90%;border:1px solid #2a2a4a}
+.pat-box h3{font-size:15px;margin-bottom:8px;color:#e0e0e0}
+.pat-box p{font-size:12px;color:#888;line-height:1.5;margin-bottom:12px}
+.pat-box input{width:100%;padding:10px;border-radius:8px;border:1px solid #333;background:#0f0f1a;color:#e0e0e0;font-size:13px;font-family:monospace;margin-bottom:10px}
+.pat-box .btns{display:flex;gap:8px;justify-content:flex-end}
+.pat-box button{padding:8px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer}
+.pat-save{background:#00d4ff;color:#0f0f1a}
+.pat-cancel{background:#333;color:#888}
 
 .search{margin-bottom:6px}
 .search input{width:100%;padding:9px 12px;border-radius:10px;border:1px solid #2a2a4a;background:#16163a;font-size:14px;color:#e0e0e0;outline:none}
@@ -154,8 +169,12 @@ td.name-col{white-space:normal;min-width:160px;max-width:220px;line-height:1.3;f
       <svg viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00d4ff"/><stop offset="100%" stop-color="#ff8c2e"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="url(#g)"/><text x="50" y="42" text-anchor="middle" font-size="28" font-weight="bold" fill="white" font-family="system-ui">D</text><text x="50" y="72" text-anchor="middle" font-size="20" fill="rgba(255,255,255,.8)" font-family="system-ui">DROP</text></svg>
       <b>Deef's <span>PriceDrop</span></b>
     </div>
-    <div class="sp sp-ok" id="sp"><div class="d"></div><span id="st">-</span></div>
+    <div class="hdr-right">
+      <button class="scan-btn" id="scanBtn" onclick="triggerScan()">SCAN</button>
+      <div class="sp sp-ok" id="sp"><div class="d"></div><span id="st">-</span></div>
+    </div>
   </div>
+  <div class="scan-time" id="scanTime"></div>
   <div class="search"><input type="text" id="q" placeholder="Zoek product..."></div>
   <div class="sliders">
     <div class="sl"><label>Korting</label><input type="range" id="thr" min="10" max="90" step="5" value="40"><span class="sv" id="thrV">40%</span></div>
@@ -187,6 +206,13 @@ td.name-col{white-space:normal;min-width:160px;max-width:220px;line-height:1.3;f
   <div class="clm-box">
     <button class="clm-x" onclick="document.getElementById('clm').style.display='none'">x</button>
     <h3>Changelog</h3>
+    <p>v3.3.0 &#8212; 4 apr 2026</p>
+    <ul>
+      <li>SCAN knop: start scan direct vanuit de app (via GitHub Actions)</li>
+      <li>Scan-tijd indicator: duidelijk zichtbaar wanneer laatste scan was</li>
+      <li>Auto-refresh na scan (pollt GitHub voor resultaat)</li>
+      <li>HA/Nabu Casa volledig ontkoppeld</li>
+    </ul>
     <p>v3.2.0 &#8212; 4 apr 2026</p>
     <ul>
       <li>Tweakers Pricewatch integratie: deals scrapen + prijsverificatie</li>
@@ -220,6 +246,19 @@ td.name-col{white-space:normal;min-width:160px;max-width:220px;line-height:1.3;f
     <ul><li>12+ shops, prijsverificatie, Marktplaats check</li></ul>
     <p>v1.0.0 &#8212; 3 apr 2026</p>
     <ul><li>Eerste versie: 5 shops, Windows notificaties</li></ul>
+  </div>
+</div>
+
+<!-- PAT SETUP MODAL -->
+<div class="pat-modal" id="patModal" onclick="if(event.target===this)this.style.display='none'">
+  <div class="pat-box">
+    <h3>GitHub Token instellen</h3>
+    <p>Om scans te starten heb je een GitHub Personal Access Token nodig met <b>actions:write</b> scope.<br>Ga naar GitHub &rarr; Settings &rarr; Developer settings &rarr; Fine-grained tokens.</p>
+    <input type="password" id="patInput" placeholder="github_pat_...">
+    <div class="btns">
+      <button class="pat-cancel" onclick="document.getElementById('patModal').style.display='none'">Annuleer</button>
+      <button class="pat-save" onclick="savePat()">Opslaan</button>
+    </div>
   </div>
 </div>
 
@@ -288,16 +327,7 @@ let D=[],P=168,S='discount_percent',Q='',MP=0,HIDE_NEP=true,ONLY_VERI=false;
 let tblSort='discount_percent',tblAsc=false;
 try{const r=document.getElementById('dd').textContent.trim();if(r&&!r.includes('__'))D=JSON.parse(r)}catch(e){}
 
-// Scan status
-if(ST&&!ST.includes('__')){
-  const p=ST.match(/(\d{2})-(\d{2})-(\d{4})\s(\d{2}):(\d{2})/);
-  if(p){const sd=new Date(+p[3],+p[2]-1,+p[1],+p[4],+p[5]);const m=Math.floor((Date.now()-sd.getTime())/60000);
-    const el=document.getElementById('sp'),t=document.getElementById('st');
-    if(m<60){t.textContent=m+'m geleden';el.className='sp sp-ok'}
-    else if(m<240){t.textContent=Math.floor(m/60)+'u geleden';el.className='sp sp-w'}
-    else{t.textContent=Math.floor(m/60)+'u geleden';el.className='sp sp-x'}
-  }
-}
+// Scan status wordt nu door updateScanTime() afgehandeld
 
 // Controls
 const thr=document.getElementById('thr'),thrV=document.getElementById('thrV');
@@ -409,6 +439,101 @@ function render(){
   h+='</tbody></table>';
   el.innerHTML=h;
 }
+
+// ===================== SCAN TRIGGER =====================
+const GH_REPO='thegaveryahoo/pricedrop';
+const GH_WORKFLOW='scan.yml';
+const PAT_KEY='pd_github_pat';
+
+function getPat(){return localStorage.getItem(PAT_KEY)}
+function savePat(){
+  const v=document.getElementById('patInput').value.trim();
+  if(v){localStorage.setItem(PAT_KEY,v);document.getElementById('patModal').style.display='none';triggerScan()}
+}
+
+async function triggerScan(){
+  const pat=getPat();
+  if(!pat){document.getElementById('patModal').style.display='flex';return}
+  const btn=document.getElementById('scanBtn');
+  btn.textContent='Starten...';btn.classList.add('running');btn.classList.remove('err');
+  try{
+    const r=await fetch('https://api.github.com/repos/'+GH_REPO+'/actions/workflows/'+GH_WORKFLOW+'/dispatches',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+pat,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
+      body:JSON.stringify({ref:'master'})
+    });
+    if(r.status===204){
+      btn.textContent='Gestart!';
+      setTimeout(()=>{btn.textContent='SCAN';btn.classList.remove('running')},3000);
+      // Poll voor resultaat na 2 min
+      setTimeout(()=>pollScanResult(pat),120000);
+    }else if(r.status===401||r.status===403){
+      btn.textContent='Token ongeldig';btn.classList.remove('running');btn.classList.add('err');
+      localStorage.removeItem(PAT_KEY);
+      setTimeout(()=>{btn.textContent='SCAN';btn.classList.remove('err')},3000);
+    }else{
+      const t=await r.text();
+      btn.textContent='Fout ('+r.status+')';btn.classList.remove('running');btn.classList.add('err');
+      setTimeout(()=>{btn.textContent='SCAN';btn.classList.remove('err')},3000);
+    }
+  }catch(e){
+    btn.textContent='Netwerk fout';btn.classList.remove('running');btn.classList.add('err');
+    setTimeout(()=>{btn.textContent='SCAN';btn.classList.remove('err')},3000);
+  }
+}
+
+async function pollScanResult(pat){
+  // Check of de workflow klaar is, dan pagina herladen
+  try{
+    const r=await fetch('https://api.github.com/repos/'+GH_REPO+'/actions/workflows/'+GH_WORKFLOW+'/runs?per_page=1&status=completed',{
+      headers:{'Authorization':'Bearer '+pat,'Accept':'application/vnd.github+json'}
+    });
+    if(r.ok){
+      const d=await r.json();
+      if(d.workflow_runs&&d.workflow_runs[0]){
+        const lastRun=new Date(d.workflow_runs[0].updated_at);
+        const now=new Date();
+        // Als de laatste run minder dan 5 min geleden klaar was → refresh
+        if((now-lastRun)<300000){
+          location.reload();
+          return;
+        }
+      }
+    }
+  }catch(e){}
+  // Nog niet klaar, probeer over 30s opnieuw (max 5 min totaal)
+  setTimeout(()=>pollScanResult(pat),30000);
+}
+
+// ===================== SCAN TIJD =====================
+function updateScanTime(){
+  const el=document.getElementById('scanTime');
+  const sp=document.getElementById('sp'),st=document.getElementById('st');
+  if(!ST||ST.includes('__')){
+    el.textContent='Nog geen scan uitgevoerd';
+    sp.className='sp sp-x';st.textContent='?';
+    return;
+  }
+  const p=ST.match(/(\d{2})-(\d{2})-(\d{4})\s(\d{2}):(\d{2})/);
+  if(!p)return;
+  const sd=new Date(+p[3],+p[2]-1,+p[1],+p[4],+p[5]);
+  const m=Math.floor((Date.now()-sd.getTime())/60000);
+  let timeStr;
+  if(m<1)timeStr='Zojuist gescand';
+  else if(m<60)timeStr='Laatste scan: '+m+' min geleden';
+  else if(m<1440)timeStr='Laatste scan: '+Math.floor(m/60)+'u '+m%60+'m geleden';
+  else timeStr='Laatste scan: '+Math.floor(m/1440)+'d geleden';
+
+  const shops='__SCAN_SHOPS__';
+  if(shops&&!shops.includes('__'))timeStr+=' ('+shops+' shops)';
+
+  el.textContent=timeStr;
+  if(m<60){sp.className='sp sp-ok';st.textContent=m+'m'}
+  else if(m<240){sp.className='sp sp-w';st.textContent=Math.floor(m/60)+'u'}
+  else{sp.className='sp sp-x';st.textContent=Math.floor(m/60)+'u'}
+}
+updateScanTime();
+setInterval(updateScanTime,60000);
 
 initPin();
 if('serviceWorker' in navigator){
