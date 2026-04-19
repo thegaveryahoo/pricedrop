@@ -2,8 +2,8 @@ name: PriceDrop Scanner
 
 on:
   schedule:
-    # Elke 15 minuten draaien
-    - cron: '*/30 * * * *'
+    # Drie keer per dag: 08:00, 14:00 en 20:00 NL (UTC 06/12/18)
+    - cron: '0 6,12,18 * * *'
   workflow_dispatch:
     # Handmatig triggeren vanuit GitHub UI
 
