@@ -19,7 +19,7 @@ from config import DB_PATH
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 DOCS_DIR = os.path.join(PROJECT_DIR, "docs")
 TEMPLATE_PATH = os.path.join(PROJECT_DIR, "pricedrop_app.html")
-APP_VERSION = "3.4.0"
+APP_VERSION = "4.0.0"
 
 
 def get_all_deals():

@@ -5,140 +5,197 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0f0f1a">
+<meta name="theme-color" content="#0a0a14">
 <meta name="color-scheme" content="dark">
 <meta name="mobile-web-app-capable" content="yes">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <link rel="manifest" href="/pricedrop/pricedrop_manifest.json">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%2300d4ff'/><stop offset='100%' stop-color='%23ff8c2e'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><text x='50' y='42' text-anchor='middle' font-size='28' font-weight='bold' fill='white' font-family='system-ui'>DEEF</text><text x='50' y='72' text-anchor='middle' font-size='22' fill='rgba(255,255,255,.8)' font-family='system-ui'>DROP</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%2300d4ff'/><stop offset='100%25' stop-color='%23ff8c2e'/></linearGradient></defs><rect width='100' height='100' rx='22' fill='url(%23g)'/><text x='50' y='42' text-anchor='middle' font-size='28' font-weight='bold' fill='white' font-family='system-ui'>DEEF</text><text x='50' y='72' text-anchor='middle' font-size='22' fill='rgba(255,255,255,.8)' font-family='system-ui'>DROP</text></svg>">
 <title>Deef's PriceDrop</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{background:#0f0f1a;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;height:100dvh;overflow:hidden}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+input,textarea{-webkit-user-select:text;user-select:text}
+html,body{background:#0a0a14;color:#e8e8f0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;height:100dvh;overflow:hidden;font-feature-settings:"tnum" 1,"ss01" 1}
 
-/* === PIN SCREEN === */
-.pin-s{position:fixed;inset:0;background:linear-gradient(160deg,#0f0f1a 0%,#1a1a3e 100%);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:30px 20px}
+/* ============== PIN SCREEN ============== */
+.pin-s{position:fixed;inset:0;background:radial-gradient(ellipse at top,#1a1a3e 0%,#0a0a14 70%);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:30px 20px}
 .pin-s.hidden{display:none}
-.pin-logo{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:8px}
-.pin-logo svg{width:64px;height:64px;filter:drop-shadow(0 4px 12px rgba(0,212,255,.25))}
-.pin-logo b{font-size:20px;color:#e0e0e0}
-.pin-logo small{font-size:11px;color:#888}
+.pin-logo{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:8px}
+.pin-logo svg{width:72px;height:72px;filter:drop-shadow(0 8px 24px rgba(0,212,255,.35))}
+.pin-logo b{font-size:22px;color:#e8e8f0;font-weight:700;letter-spacing:-.3px}
+.pin-logo small{font-size:11px;color:#666;letter-spacing:.5px}
 .pin-lbl{font-size:14px;color:#888;font-weight:600;text-align:center}
 .pin-dots{display:flex;gap:12px;margin:4px 0}
-.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid #333;background:transparent;transition:.15s}
-.pin-dot.ok{background:#00d4ff;border-color:#00d4ff}
-.pin-dot.err{background:#ff4444;border-color:#ff4444}
+.pin-dot{width:14px;height:14px;border-radius:50%;border:2px solid #2a2a4a;background:transparent;transition:.18s ease}
+.pin-dot.ok{background:#00d4ff;border-color:#00d4ff;box-shadow:0 0 12px rgba(0,212,255,.5)}
+.pin-dot.err{background:#ff4444;border-color:#ff4444;box-shadow:0 0 12px rgba(255,68,68,.5)}
 .pin-err{font-size:12px;color:#ff4444;font-weight:600;min-height:16px}
 .pin-err.h{visibility:hidden}
-.pin-pad{display:grid;grid-template-columns:repeat(3,68px);gap:8px}
-.pin-b{width:68px;height:52px;border-radius:12px;border:1.5px solid #333;background:#16163a;color:#e0e0e0;font-size:22px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.pin-b:active{background:#2a2a4a;transform:scale(.93)}
+.pin-pad{display:grid;grid-template-columns:repeat(3,72px);gap:10px}
+.pin-b{width:72px;height:56px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(22,22,58,.6);backdrop-filter:blur(10px);color:#e8e8f0;font-size:22px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s}
+.pin-b:active{background:rgba(0,212,255,.2);transform:scale(.92);border-color:rgba(0,212,255,.4)}
 
-/* === MAIN APP === */
+/* ============== MAIN APP ============== */
 .app{display:none;height:100dvh;flex-direction:column;overflow:hidden}
 .app.show{display:flex}
 
 /* Header */
-.hdr{padding:10px 14px 8px;background:#0f0f1a;border-bottom:1px solid #2a2a4a;flex-shrink:0}
+.hdr{padding:10px 14px 8px;background:rgba(10,10,20,.95);backdrop-filter:blur(20px);border-bottom:1px solid rgba(42,42,74,.6);flex-shrink:0;position:relative;z-index:5}
 .h1{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.logo{display:flex;align-items:center;gap:7px}
-.logo svg{width:26px;height:26px}
-.logo b{font-size:16px;color:#e0e0e0}
-.logo b span{color:#00d4ff}
+.logo{display:flex;align-items:center;gap:8px}
+.logo svg{width:28px;height:28px;filter:drop-shadow(0 2px 8px rgba(0,212,255,.3))}
+.logo b{font-size:16px;color:#e8e8f0;font-weight:700;letter-spacing:-.2px}
+.logo b span{background:linear-gradient(90deg,#00d4ff,#ff8c2e);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .hdr-right{display:flex;align-items:center;gap:6px}
-.scan-btn{padding:5px 12px;border-radius:10px;border:1px solid #00d4ff;background:rgba(0,212,255,.1);color:#00d4ff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:.2s}
-.scan-btn:active{transform:scale(.95);background:rgba(0,212,255,.25)}
-.scan-btn.running{opacity:.5;pointer-events:none;border-color:#ffaa00;color:#ffaa00}
-.scan-btn.err{border-color:#ff4444;color:#ff4444}
-.sp{font-size:11px;padding:3px 9px;border-radius:14px;display:flex;align-items:center;gap:4px;font-weight:600}
+.scan-btn{padding:6px 14px;border-radius:12px;border:1px solid rgba(0,212,255,.5);background:linear-gradient(135deg,rgba(0,212,255,.18),rgba(0,212,255,.08));color:#00d4ff;font-size:11px;font-weight:700;letter-spacing:.5px;cursor:pointer;white-space:nowrap;transition:.2s;box-shadow:0 0 16px rgba(0,212,255,.15)}
+.scan-btn:active{transform:scale(.94)}
+.scan-btn.running{border-color:#ffaa00;color:#ffaa00;background:linear-gradient(135deg,rgba(255,170,0,.15),rgba(255,170,0,.05));box-shadow:0 0 20px rgba(255,170,0,.25);animation:pulse 1.6s ease-in-out infinite}
+.scan-btn.err{border-color:#ff4444;color:#ff4444;background:rgba(255,68,68,.1);box-shadow:0 0 16px rgba(255,68,68,.2)}
+.scan-btn.ok{border-color:#00ff88;color:#00ff88;background:rgba(0,255,136,.1)}
+@keyframes pulse{0%,100%{box-shadow:0 0 16px rgba(255,170,0,.2)}50%{box-shadow:0 0 28px rgba(255,170,0,.5)}}
+.sp{font-size:11px;padding:4px 10px;border-radius:14px;display:flex;align-items:center;gap:5px;font-weight:600}
 .sp .d{width:7px;height:7px;border-radius:50%}
-.sp-ok{background:rgba(0,255,136,.1);color:#00ff88}.sp-ok .d{background:#00ff88}
-.sp-w{background:rgba(255,170,0,.1);color:#ffaa00}.sp-w .d{background:#ffaa00}
+.sp-ok{background:rgba(0,255,136,.1);color:#00ff88}.sp-ok .d{background:#00ff88;box-shadow:0 0 6px #00ff88}
+.sp-w{background:rgba(255,170,0,.1);color:#ffaa00}.sp-w .d{background:#ffaa00;box-shadow:0 0 6px #ffaa00}
 .sp-x{background:rgba(255,68,68,.1);color:#ff4444}.sp-x .d{background:#ff4444}
-.scan-time{font-size:11px;color:#888;text-align:right;margin-top:2px;padding:0 2px}
-.pat-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;align-items:center;justify-content:center}
-.pat-box{background:#16163a;border-radius:16px;padding:24px;max-width:380px;width:90%;border:1px solid #2a2a4a}
-.pat-box h3{font-size:15px;margin-bottom:8px;color:#e0e0e0}
-.pat-box p{font-size:12px;color:#888;line-height:1.5;margin-bottom:12px}
-.pat-box input{width:100%;padding:10px;border-radius:8px;border:1px solid #333;background:#0f0f1a;color:#e0e0e0;font-size:13px;font-family:monospace;margin-bottom:10px}
-.pat-box .btns{display:flex;gap:8px;justify-content:flex-end}
-.pat-box button{padding:8px 16px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer}
-.pat-save{background:#00d4ff;color:#0f0f1a}
-.pat-cancel{background:#333;color:#888}
 
-.search{margin-bottom:6px}
-.search input{width:100%;padding:9px 12px;border-radius:10px;border:1px solid #2a2a4a;background:#16163a;font-size:14px;color:#e0e0e0;outline:none}
-.search input:focus{border-color:#00d4ff}
+.scan-time{font-size:11px;color:#888;text-align:right;margin-top:2px;padding:0 2px}
+.scan-progress{display:none;margin-top:6px;font-size:11px;color:#ffaa00;background:rgba(255,170,0,.08);padding:6px 10px;border-radius:8px;border:1px solid rgba(255,170,0,.25)}
+.scan-progress.show{display:block}
+.scan-progress .bar{height:3px;background:rgba(255,170,0,.15);border-radius:2px;margin-top:5px;overflow:hidden}
+.scan-progress .fill{height:100%;background:linear-gradient(90deg,#ffaa00,#ff8c2e);width:0%;transition:width .8s ease;border-radius:2px}
+
+/* Modal: PAT */
+.pat-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:300;align-items:center;justify-content:center;padding:20px}
+.pat-box{background:linear-gradient(160deg,#1a1a3e,#16163a);border-radius:20px;padding:24px;max-width:380px;width:100%;border:1px solid rgba(255,255,255,.1);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.pat-box h3{font-size:16px;margin-bottom:8px;color:#e8e8f0;font-weight:700}
+.pat-box p{font-size:12px;color:#aaa;line-height:1.55;margin-bottom:14px}
+.pat-box input{width:100%;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:#0a0a14;color:#e8e8f0;font-size:13px;font-family:'SF Mono','Consolas',monospace;margin-bottom:12px;outline:none}
+.pat-box input:focus{border-color:#00d4ff}
+.pat-box .btns{display:flex;gap:8px;justify-content:flex-end}
+.pat-box button{padding:10px 18px;border-radius:10px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:.15s}
+.pat-save{background:linear-gradient(135deg,#00d4ff,#0099cc);color:#0a0a14}
+.pat-save:active{transform:scale(.97)}
+.pat-cancel{background:rgba(255,255,255,.06);color:#aaa}
+
+/* Search + sliders */
+.search{margin-bottom:8px}
+.search input{width:100%;padding:10px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(22,22,58,.5);font-size:14px;color:#e8e8f0;outline:none;transition:.15s}
+.search input:focus{border-color:#00d4ff;background:rgba(22,22,58,.8)}
 .search input::placeholder{color:#555}
 
-.sliders{display:flex;flex-direction:column;gap:4px}
-.sl{display:flex;align-items:center;gap:6px}
-.sl label{font-size:11px;color:#888;font-weight:700;min-width:50px}
-.sl input[type=range]{-webkit-appearance:none;flex:1;height:4px;border-radius:2px;background:#333;outline:none}
-.sl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#00d4ff;box-shadow:0 2px 6px rgba(0,212,255,.3)}
-.sv{font-size:14px;font-weight:800;color:#00d4ff;min-width:38px;text-align:right}
+.sliders{display:flex;flex-direction:column;gap:6px}
+.sl{display:flex;align-items:center;gap:8px}
+.sl label{font-size:11px;color:#888;font-weight:700;min-width:54px;text-transform:uppercase;letter-spacing:.3px}
+.sl input[type=range]{-webkit-appearance:none;flex:1;height:6px;border-radius:3px;background:linear-gradient(to right,#00d4ff var(--p,40%),#1a1a3e var(--p,40%));outline:none}
+.sl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid #00d4ff;box-shadow:0 2px 8px rgba(0,212,255,.4);cursor:pointer}
+.sl input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid #00d4ff;box-shadow:0 2px 8px rgba(0,212,255,.4);cursor:pointer;border-width:3px}
+.sv{font-size:13px;font-weight:800;color:#00d4ff;min-width:42px;text-align:right}
 
-/* Filters */
-.fbar{display:flex;gap:5px;padding:6px 14px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;border-bottom:1px solid #2a2a4a;background:#0f0f1a}
+/* Filter bar */
+.fbar{display:flex;gap:6px;padding:8px 14px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;border-bottom:1px solid rgba(42,42,74,.5);background:rgba(10,10,20,.95)}
 .fbar::-webkit-scrollbar{display:none}
-.fb{flex-shrink:0;padding:6px 12px;border-radius:16px;font-size:12px;font-weight:600;border:1px solid #333;background:transparent;color:#888;cursor:pointer;white-space:nowrap}
-.fb.on{background:rgba(0,212,255,.15);color:#00d4ff;border-color:#00d4ff}
-.fb i{font-style:normal;font-size:9px;opacity:.8;margin-left:2px}
-.sep{width:1px;background:#2a2a4a;flex-shrink:0;margin:4px 0}
+.fb{flex-shrink:0;padding:6px 12px;border-radius:18px;font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,.08);background:transparent;color:#888;cursor:pointer;white-space:nowrap;transition:.15s}
+.fb:active{transform:scale(.94)}
+.fb.on{background:rgba(0,212,255,.15);color:#00d4ff;border-color:rgba(0,212,255,.5);box-shadow:0 0 8px rgba(0,212,255,.2)}
+.sep{width:1px;background:rgba(42,42,74,.6);flex-shrink:0;margin:4px 0}
 
 /* Stats bar */
-.stats{display:flex;gap:8px;padding:8px 14px;flex-shrink:0;overflow-x:auto;scrollbar-width:none}
-.stats::-webkit-scrollbar{display:none}
-.stat{flex:1;min-width:75px;background:#16163a;border:1px solid #2a2a4a;border-radius:10px;padding:8px;text-align:center}
-.stat .val{font-size:20px;font-weight:700;color:#00d4ff}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 14px;flex-shrink:0}
+.stat{background:linear-gradient(135deg,rgba(22,22,58,.8),rgba(22,22,58,.4));border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:8px 4px;text-align:center;backdrop-filter:blur(8px)}
+.stat .val{font-size:18px;font-weight:800;color:#00d4ff;letter-spacing:-.3px;line-height:1.1}
 .stat .val.hot{color:#ff4444}
 .stat .val.profit{color:#00ff88}
-.stat .lbl{color:#888;font-size:10px;margin-top:2px}
+.stat .lbl{color:#888;font-size:9px;margin-top:3px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
 
-/* Table */
-.tbl-wrap{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:0 8px 28px}
-table{width:100%;border-collapse:collapse;min-width:500px}
-thead th{background:#16163a;color:#00d4ff;padding:8px 6px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;position:sticky;top:0;cursor:pointer;user-select:none;border-bottom:2px solid #2a2a4a;white-space:nowrap;z-index:2}
-thead th:hover{color:#fff}
-thead th.sorted::after{content:' \u25BC';font-size:8px}
-thead th.sorted-asc::after{content:' \u25B2';font-size:8px}
-tbody tr{transition:background .15s}
-tbody tr:hover,tbody tr:active{background:#1a1a3e}
-tbody td{padding:8px 6px;border-bottom:1px solid #1e1e3a;font-size:13px;white-space:nowrap}
-td.name-col{white-space:normal;min-width:160px;max-width:220px;line-height:1.3;font-weight:600}
-.disc-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-weight:700;font-size:13px}
-.disc-hot{background:rgba(255,68,68,.15);color:#ff4444}
-.disc-warm{background:rgba(255,170,0,.15);color:#ffaa00}
-.disc-cool{background:rgba(0,212,255,.15);color:#00d4ff}
-.profit-pos{color:#00ff88;font-weight:600}
-.profit-neg{color:#ff4444;font-weight:600}
-.shop-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:#1e1e3e;border:1px solid #333;white-space:nowrap}
-.link-btn{display:inline-block;padding:3px 8px;border-radius:4px;background:rgba(0,212,255,.12);color:#00d4ff;text-decoration:none;font-size:12px;font-weight:600}
+/* Deals scroll area */
+.deals{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:8px 12px 80px;scroll-behavior:smooth}
+.deals::-webkit-scrollbar{width:0}
+
+/* ============== CARD VIEW ============== */
+.card{display:block;background:linear-gradient(135deg,rgba(22,22,58,.85),rgba(22,22,58,.55));border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:14px;margin-bottom:10px;text-decoration:none;color:inherit;cursor:pointer;transition:.15s;position:relative;overflow:hidden;-webkit-user-select:none;user-select:none}
+.card:active{transform:scale(.985);background:linear-gradient(135deg,rgba(22,22,58,.95),rgba(30,30,80,.7))}
+.card.fake{opacity:.4}
+.card.veri::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,#00ff88,#00cc6a)}
+.card.hot{border-color:rgba(255,68,68,.35);background:linear-gradient(135deg,rgba(58,22,30,.85),rgba(40,20,30,.55));box-shadow:0 0 20px rgba(255,68,68,.1)}
+.card.hot::after{content:'🔥';position:absolute;top:10px;right:10px;font-size:18px;filter:drop-shadow(0 0 8px rgba(255,68,68,.5));pointer-events:none}
+
+.c-row1{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.shop-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(255,255,255,.06);color:#bbb;border:1px solid rgba(255,255,255,.06);max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shop-pill .flag{font-size:13px}
+
+.disc{display:inline-flex;align-items:baseline;padding:5px 12px;border-radius:12px;font-weight:800;font-size:16px;letter-spacing:-.3px;flex-shrink:0}
+.disc-hot{background:linear-gradient(135deg,rgba(255,68,68,.25),rgba(255,68,68,.1));color:#ff5d5d;border:1px solid rgba(255,68,68,.3);text-shadow:0 0 12px rgba(255,68,68,.4)}
+.disc-warm{background:linear-gradient(135deg,rgba(255,170,0,.2),rgba(255,170,0,.08));color:#ffb733;border:1px solid rgba(255,170,0,.3)}
+.disc-cool{background:linear-gradient(135deg,rgba(0,212,255,.2),rgba(0,212,255,.08));color:#00d4ff;border:1px solid rgba(0,212,255,.3)}
+
+.c-name{font-size:14px;font-weight:600;line-height:1.3;color:#e8e8f0;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+.c-prices{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+.c-now{font-size:22px;font-weight:800;color:#00d4ff;letter-spacing:-.5px;line-height:1}
+.c-was{font-size:13px;color:#666;text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:rgba(255,68,68,.4)}
+
+.c-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.tag{font-size:10px;font-weight:600;padding:3px 8px;border-radius:8px;display:inline-flex;align-items:center;gap:3px;letter-spacing:.2px}
+.tag-g{color:#00ff88;background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.2)}
+.tag-r{color:#ff5d5d;background:rgba(255,68,68,.12);border:1px solid rgba(255,68,68,.2)}
+.tag-b{color:#5b9eff;background:rgba(91,158,255,.12);border:1px solid rgba(91,158,255,.2)}
+.tag-c{color:#a78bfa;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.2)}
+.tag-y{color:#ffd166;background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.2)}
+
+.c-foot{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#666}
+.c-time{display:inline-flex;align-items:center;gap:4px}
+.c-arrow{color:#00d4ff;font-weight:700;font-size:13px}
+
+/* ============== TABLE VIEW (fallback) ============== */
+.tbl-wrap{padding:0 4px}
+.tbl-wrap table{width:100%;border-collapse:collapse;min-width:520px;font-size:13px}
+.tbl-wrap thead th{background:rgba(22,22,58,.9);color:#00d4ff;padding:8px 6px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0;cursor:pointer;user-select:none;border-bottom:2px solid rgba(42,42,74,.6);white-space:nowrap;z-index:2}
+.tbl-wrap thead th:hover{color:#fff}
+.tbl-wrap thead th.sorted::after{content:' ▼';font-size:8px}
+.tbl-wrap thead th.sorted-asc::after{content:' ▲';font-size:8px}
+.tbl-wrap tbody tr{transition:background .15s}
+.tbl-wrap tbody tr:active{background:rgba(26,26,62,.8)}
+.tbl-wrap tbody td{padding:8px 6px;border-bottom:1px solid rgba(30,30,58,.6);white-space:nowrap}
+.tbl-wrap td.name-col{white-space:normal;min-width:160px;max-width:220px;line-height:1.3;font-weight:600}
+.tbl-wrap .nep-row{opacity:.35}
+.tbl-wrap .veri-row td:first-child{border-left:3px solid #00ff88}
+.link-btn{display:inline-block;padding:4px 10px;border-radius:8px;background:rgba(0,212,255,.15);color:#00d4ff;text-decoration:none;font-size:11px;font-weight:700}
 .link-btn:active{background:rgba(0,212,255,.3)}
-.nep-row{opacity:.35}
-.veri-row td:first-child{border-left:3px solid #00ff88}
-.tag{font-size:9px;font-weight:600;padding:1px 4px;border-radius:3px;margin-right:2px}
-.tag-g{color:#00ff88;background:rgba(0,255,136,.1)}
-.tag-r{color:#ff4444;background:rgba(255,68,68,.1)}
-.tag-b{color:#5b9eff;background:rgba(91,158,255,.1)}
-.tag-c{color:#a78bfa;background:rgba(167,139,250,.1)}
-.empty{text-align:center;padding:40px 16px;color:#555}
+
+/* Empty state */
+.empty{text-align:center;padding:60px 24px;color:#555}
+.empty .ic{font-size:48px;opacity:.25;margin-bottom:12px}
+.empty .t1{font-size:15px;color:#888;font-weight:600;margin-bottom:4px}
+.empty .t2{font-size:12px;color:#555}
 
 /* Footer */
-.ftr{flex-shrink:0;background:#0f0f1a;border-top:1px solid #2a2a4a;padding:4px 14px;display:flex;justify-content:space-between;align-items:center}
-.ftr span,.ftr button{font-size:10px;color:#555}
-.ftr button{background:none;border:none;cursor:pointer;color:#00d4ff;font-weight:600}
+.ftr{flex-shrink:0;background:rgba(10,10,20,.95);backdrop-filter:blur(20px);border-top:1px solid rgba(42,42,74,.5);padding:8px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ftr-left,.ftr-right{display:flex;align-items:center;gap:10px}
+.ftr span,.ftr button{font-size:11px;color:#666}
+.ftr .v-toggle{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:#00d4ff;padding:4px 10px;border-radius:8px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:4px}
+.ftr .v-toggle:active{transform:scale(.95)}
+.ftr .cl-btn{background:none;border:none;cursor:pointer;color:#00d4ff;font-weight:600}
 
-/* Changelog */
-.clm{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:flex-end;justify-content:center}
-.clm-box{background:#16163a;border-radius:16px 16px 0 0;padding:20px;max-width:400px;width:100%;max-height:65vh;overflow-y:auto;border:1px solid #2a2a4a}
-.clm-box h3{font-size:16px;margin-bottom:12px;color:#e0e0e0}
-.clm-box p{font-weight:700;color:#00d4ff;font-size:13px;margin:8px 0 4px}
-.clm-box ul{font-size:12px;color:#888;padding-left:16px;line-height:1.6;margin-bottom:8px}
-.clm-x{background:none;border:none;font-size:22px;cursor:pointer;color:#555;float:right}
-@media(min-width:500px){body{max-width:500px;margin:0 auto}}
+/* Changelog modal */
+.clm{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);z-index:200;align-items:flex-end;justify-content:center}
+.clm-box{background:linear-gradient(180deg,#1a1a3e,#0f0f1f);border-radius:20px 20px 0 0;padding:22px;max-width:500px;width:100%;max-height:75vh;overflow-y:auto;border-top:1px solid rgba(255,255,255,.1)}
+.clm-box h3{font-size:17px;margin-bottom:14px;color:#e8e8f0;font-weight:700}
+.clm-box p{font-weight:700;color:#00d4ff;font-size:13px;margin:10px 0 4px}
+.clm-box ul{font-size:12px;color:#aaa;padding-left:18px;line-height:1.7;margin-bottom:8px}
+.clm-x{background:rgba(255,255,255,.06);border:none;width:32px;height:32px;border-radius:50%;font-size:20px;cursor:pointer;color:#888;float:right;display:flex;align-items:center;justify-content:center}
+
+@media(min-width:560px){body{max-width:560px;margin:0 auto;border-left:1px solid rgba(42,42,74,.4);border-right:1px solid rgba(42,42,74,.4)}}
+
+/* Spinner */
+.spinner{display:inline-block;width:10px;height:10px;border:2px solid rgba(255,170,0,.3);border-top-color:#ffaa00;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-1px;margin-right:4px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Fade in animation for cards */
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.card,.tbl-wrap tbody tr{animation:fadeIn .25s ease both}
 </style>
 </head>
 <body>
@@ -157,7 +214,7 @@ td.name-col{white-space:normal;min-width:160px;max-width:220px;line-height:1.3;f
     <button class="pin-b" onclick="pinPress('1')">1</button><button class="pin-b" onclick="pinPress('2')">2</button><button class="pin-b" onclick="pinPress('3')">3</button>
     <button class="pin-b" onclick="pinPress('4')">4</button><button class="pin-b" onclick="pinPress('5')">5</button><button class="pin-b" onclick="pinPress('6')">6</button>
     <button class="pin-b" onclick="pinPress('7')">7</button><button class="pin-b" onclick="pinPress('8')">8</button><button class="pin-b" onclick="pinPress('9')">9</button>
-    <button class="pin-b" style="visibility:hidden"></button><button class="pin-b" onclick="pinPress('0')">0</button><button class="pin-b" onclick="pinBack()">&#9003;</button>
+    <button class="pin-b" style="visibility:hidden"></button><button class="pin-b" onclick="pinPress('0')">0</button><button class="pin-b" onclick="pinBack()">⌫</button>
   </div>
 </div>
 
@@ -175,82 +232,86 @@ td.name-col{white-space:normal;min-width:160px;max-width:220px;line-height:1.3;f
     </div>
   </div>
   <div class="scan-time" id="scanTime"></div>
-  <div class="search"><input type="text" id="q" placeholder="Zoek product..."></div>
+  <div class="scan-progress" id="scanProgress">
+    <div id="scanProgressText"><span class="spinner"></span>Scan loopt...</div>
+    <div class="bar"><div class="fill" id="scanProgressFill"></div></div>
+  </div>
+  <div class="search"><input type="text" id="q" placeholder="🔍 Zoek product..."></div>
   <div class="sliders">
     <div class="sl"><label>Korting</label><input type="range" id="thr" min="10" max="90" step="5" value="40"><span class="sv" id="thrV">40%</span></div>
-    <div class="sl"><label>Min prijs</label><input type="range" id="mp" min="0" max="500" step="25" value="0"><span class="sv" id="mpV">&#8364;0</span></div>
+    <div class="sl"><label>Min prijs</label><input type="range" id="mp" min="0" max="500" step="25" value="0"><span class="sv" id="mpV">€0</span></div>
   </div>
 </div>
 
 <div class="fbar" id="fb">
   <button class="fb" data-h="24">24u</button><button class="fb" data-h="48">48u</button><button class="fb on" data-h="168">7d</button><button class="fb" data-h="720">30d</button>
   <div class="sep"></div>
-  <button class="fb on" data-s="discount_percent">Korting</button><button class="fb" data-s="mp_profit">MP winst</button><button class="fb" data-s="current_price">Prijs</button><button class="fb" data-s="found_at">Nieuw</button>
+  <button class="fb on" data-s="discount_percent">% Korting</button><button class="fb" data-s="mp_profit">💰 MP winst</button><button class="fb" data-s="current_price">💶 Prijs</button><button class="fb" data-s="found_at">⏱ Nieuw</button>
   <div class="sep"></div>
-  <button class="fb on" id="hideNep" data-tog="nep">Nep weg</button><button class="fb" data-tog="veri">Alleen echt</button>
+  <button class="fb on" id="hideNep" data-tog="nep">🚫 Nep weg</button><button class="fb" data-tog="veri">✅ Alleen echt</button>
 </div>
 
 <div class="stats" id="statsBar"></div>
 
-<div class="tbl-wrap" id="dl"></div>
+<div class="deals" id="dl"></div>
 
 <div class="ftr">
-  <span id="ver">v__APP_VERSION__</span>
-  <button onclick="document.getElementById('clm').style.display='flex'">Changelog</button>
-  <span id="cnt">0 deals</span>
+  <div class="ftr-left">
+    <span id="ver">v__APP_VERSION__</span>
+    <button class="cl-btn" onclick="document.getElementById('clm').style.display='flex'">Changelog</button>
+  </div>
+  <div class="ftr-right">
+    <button class="v-toggle" id="vToggle" onclick="toggleView()">🃏 Cards</button>
+    <span id="cnt">0 deals</span>
+  </div>
 </div>
 </div><!-- /app -->
 
 <!-- CHANGELOG -->
 <div class="clm" id="clm" onclick="if(event.target===this)this.style.display='none'">
   <div class="clm-box">
-    <button class="clm-x" onclick="document.getElementById('clm').style.display='none'">x</button>
+    <button class="clm-x" onclick="document.getElementById('clm').style.display='none'">×</button>
     <h3>Changelog</h3>
-    <p>v3.4.0 &#8212; 4 apr 2026</p>
+    <p>v4.0.0 — 26 apr 2026</p>
+    <ul>
+      <li>🃏 Card view (mobile-first) — tap een kaart om de deal te openen</li>
+      <li>🔥 Hot-deal highlights — top deals krijgen een vlam-badge</li>
+      <li>🔁 Toggle Card / Tabel weergave (footer-knop)</li>
+      <li>✅ SCAN-fix: progress-balk, max 8min timeout, dedup tegen dubbel-klik</li>
+      <li>🎨 Modernere look: gradient borders, glow-effects, betere typografie</li>
+    </ul>
+    <p>v3.4.0 — 4 apr 2026</p>
     <ul>
       <li>Tweakers scraper gefixt: juiste URL (/pricewatch/deals/) + CSS selectors</li>
       <li>PAT via URL parameter: open ?pat=TOKEN op telefoon om SCAN knop te activeren</li>
     </ul>
-    <p>v3.3.0 &#8212; 4 apr 2026</p>
+    <p>v3.3.0 — 4 apr 2026</p>
     <ul>
       <li>SCAN knop: start scan direct vanuit de app (via GitHub Actions)</li>
       <li>Scan-tijd indicator: duidelijk zichtbaar wanneer laatste scan was</li>
       <li>Auto-refresh na scan (pollt GitHub voor resultaat)</li>
       <li>HA/Nabu Casa volledig ontkoppeld</li>
     </ul>
-    <p>v3.2.0 &#8212; 4 apr 2026</p>
+    <p>v3.2.0 — 4 apr 2026</p>
     <ul>
       <li>Tweakers Pricewatch integratie: deals scrapen + prijsverificatie</li>
       <li>Verificatiebron zichtbaar per deal (Tweakers/Idealo/Google)</li>
-      <li>Tweakers marktprijs als tag in deal-info</li>
-      <li>14+ shops (Tweakers toegevoegd als bron)</li>
+      <li>14+ shops</li>
     </ul>
-    <p>v3.1.0 &#8212; 4 apr 2026</p>
+    <p>v3.1.0 — 4 apr 2026</p>
     <ul>
       <li>Dark table layout (mobiel-geoptimaliseerd)</li>
       <li>Stats balk met totaal deals, hoogste korting, winst</li>
       <li>iBood scanner: sorteren op korting, early-stop, kleding-filter</li>
     </ul>
-    <p>v3.0.0 &#8212; 3 apr 2026</p>
+    <p>v3.0.0 — 3 apr 2026</p>
     <ul>
-      <li>Cache-busting: pull-to-refresh haalt altijd nieuwste versie</li>
-      <li>iBood scanner: alle pagina's automatisch doorlopen</li>
-      <li>Semver versienummers (3.0.0 formaat)</li>
-      <li>Landvlaggen bij deals</li>
-      <li>Duits naar Nederlands vertaling</li>
-      <li>China/AliExpress deals gefilterd</li>
-      <li>Deals ouder dan 48u automatisch opgeruimd</li>
+      <li>Cache-busting, semver, landvlaggen, Duits→NL, oude deals opruimen</li>
     </ul>
-    <p>v2.5.0 &#8212; 3 apr 2026</p>
+    <p>v2.5.0 — 3 apr 2026</p>
     <ul>
-      <li>Rebranding: Deef's PriceDrop</li>
-      <li>PIN-login (6 cijfers, 4u sessie, 5 pogingen/lockout)</li>
-      <li>Nep-filter + alleen-echt filter</li>
+      <li>Rebranding: Deef's PriceDrop, PIN-login, nep-filter</li>
     </ul>
-    <p>v2.0.0 &#8212; 3 apr 2026</p>
-    <ul><li>12+ shops, prijsverificatie, Marktplaats check</li></ul>
-    <p>v1.0.0 &#8212; 3 apr 2026</p>
-    <ul><li>Eerste versie: 5 shops, Windows notificaties</li></ul>
   </div>
 </div>
 
@@ -258,7 +319,7 @@ td.name-col{white-space:normal;min-width:160px;max-width:220px;line-height:1.3;f
 <div class="pat-modal" id="patModal" onclick="if(event.target===this)this.style.display='none'">
   <div class="pat-box">
     <h3>GitHub Token instellen</h3>
-    <p>Om scans te starten heb je een GitHub Personal Access Token nodig met <b>actions:write</b> scope.<br>Ga naar GitHub &rarr; Settings &rarr; Developer settings &rarr; Fine-grained tokens.</p>
+    <p>Om scans te starten heb je een GitHub Personal Access Token nodig met <b>actions:write</b> scope.<br>Ga naar GitHub → Settings → Developer settings → Fine-grained tokens.</p>
     <input type="password" id="patInput" placeholder="github_pat_...">
     <div class="btns">
       <button class="pat-cancel" onclick="document.getElementById('patModal').style.display='none'">Annuleer</button>
@@ -296,7 +357,7 @@ function initPin(){
 }
 
 function pinPress(d){
-  if(isLocked()){document.getElementById('pin-lbl').textContent='Geblokkeerd \u2014 '+lockMins()+' min';return}
+  if(isLocked()){document.getElementById('pin-lbl').textContent='Geblokkeerd — '+lockMins()+' min';return}
   if(pinBuf.length>=6)return;
   pinBuf+=d;renderDots();
   document.getElementById('pin-err').classList.add('h');
@@ -307,11 +368,11 @@ function renderDots(s){document.querySelectorAll('.pin-dot').forEach((d,i)=>{d.c
 function pinErr(m){const e=document.getElementById('pin-err');e.textContent=m||'Onjuiste PIN';e.classList.remove('h');renderDots('err');setTimeout(()=>{pinBuf='';renderDots()},700)}
 
 async function handlePin(){
-  if(isLocked()){document.getElementById('pin-lbl').textContent='Geblokkeerd \u2014 '+lockMins()+' min';pinBuf='';renderDots();return}
+  if(isLocked()){document.getElementById('pin-lbl').textContent='Geblokkeerd — '+lockMins()+' min';pinBuf='';renderDots();return}
   const h=await hashPin(pinBuf);
   if(pinMode==='enter'){
     if(h===getHash()){clrFail();localStorage.setItem(PD_UNLOCK,''+(Date.now()+PIN_SESSION));showApp()}
-    else{const l=recFail();if(l){document.getElementById('pin-lbl').textContent='Geblokkeerd \u2014 '+lockMins()+' min';document.querySelectorAll('.pin-b').forEach(b=>b.disabled=true);pinBuf='';renderDots()}else{const left=MAX_TRIES-+(localStorage.getItem(PD_TRIES)||0);pinErr('Onjuiste PIN \u2014 nog '+left)}}
+    else{const l=recFail();if(l){document.getElementById('pin-lbl').textContent='Geblokkeerd — '+lockMins()+' min';document.querySelectorAll('.pin-b').forEach(b=>b.disabled=true);pinBuf='';renderDots()}else{const left=MAX_TRIES-+(localStorage.getItem(PD_TRIES)||0);pinErr('Onjuiste PIN — nog '+left)}}
   }else if(pinMode==='set-new'){
     pinNew=pinBuf;pinMode='confirm';pinBuf='';renderDots();document.getElementById('pin-lbl').textContent='Bevestig je PIN';
   }else if(pinMode==='confirm'){
@@ -323,27 +384,42 @@ async function handlePin(){
 function showApp(){
   document.getElementById('pin-s').classList.add('hidden');
   const app=document.getElementById('app');app.classList.add('show');
+  // Resume in-progress scan if browser was closed mid-scan
+  resumeScanIfRunning();
   render();
 }
 
 // ===================== DEAL DATA =====================
 const ST='__SCAN_TIME__';
 let D=[],P=168,S='discount_percent',Q='',MP=0,HIDE_NEP=true,ONLY_VERI=false;
+let VIEW='cards'; // 'cards' or 'table'
 let tblSort='discount_percent',tblAsc=false;
 try{const r=document.getElementById('dd').textContent.trim();if(r&&!r.includes('__'))D=JSON.parse(r)}catch(e){}
 
-// Scan status wordt nu door updateScanTime() afgehandeld
-
-// Controls
+// ===================== CONTROLS =====================
 const thr=document.getElementById('thr'),thrV=document.getElementById('thrV');
 const mpEl=document.getElementById('mp'),mpV=document.getElementById('mpV');
 const qEl=document.getElementById('q');
 const g=k=>localStorage.getItem('pd6_'+k);
-if(g('t'))thr.value=g('t');if(g('m'))mpEl.value=g('m');
-thrV.textContent=thr.value+'%';MP=+mpEl.value;mpV.textContent='\u20AC'+MP;
+if(g('t'))thr.value=g('t');
+if(g('m'))mpEl.value=g('m');
+if(g('v'))VIEW=g('v');
 
-thr.addEventListener('input',()=>{thrV.textContent=thr.value+'%';localStorage.setItem('pd6_t',thr.value);render()});
-mpEl.addEventListener('input',()=>{MP=+mpEl.value;mpV.textContent='\u20AC'+MP;localStorage.setItem('pd6_m',mpEl.value);render()});
+function updateThrVisual(){
+  const min=+thr.min,max=+thr.max,val=+thr.value;
+  const pct=((val-min)/(max-min))*100;
+  thr.style.setProperty('--p',pct+'%');
+}
+function updateMpVisual(){
+  const min=+mpEl.min,max=+mpEl.max,val=+mpEl.value;
+  const pct=((val-min)/(max-min))*100;
+  mpEl.style.setProperty('--p',pct+'%');
+}
+thrV.textContent=thr.value+'%';MP=+mpEl.value;mpV.textContent='€'+MP;
+updateThrVisual();updateMpVisual();
+
+thr.addEventListener('input',()=>{thrV.textContent=thr.value+'%';updateThrVisual();localStorage.setItem('pd6_t',thr.value);render()});
+mpEl.addEventListener('input',()=>{MP=+mpEl.value;mpV.textContent='€'+MP;updateMpVisual();localStorage.setItem('pd6_m',mpEl.value);render()});
 qEl.addEventListener('input',()=>{Q=qEl.value.toLowerCase();render()});
 
 document.getElementById('fb').addEventListener('click',e=>{
@@ -354,6 +430,15 @@ document.getElementById('fb').addEventListener('click',e=>{
   if(b.dataset.tog==='veri'){ONLY_VERI=!ONLY_VERI;b.classList.toggle('on',ONLY_VERI);render()}
 });
 
+function toggleView(){
+  VIEW=(VIEW==='cards')?'table':'cards';
+  localStorage.setItem('pd6_v',VIEW);
+  document.getElementById('vToggle').textContent=(VIEW==='cards')?'🃏 Cards':'📋 Tabel';
+  render();
+}
+document.getElementById('vToggle').textContent=(VIEW==='cards')?'🃏 Cards':'📋 Tabel';
+
+// ===================== FILTER + SORT =====================
 function flt(){
   const md=+thr.value,co=Date.now()-P*36e5;
   return D.filter(d=>{
@@ -386,20 +471,77 @@ function renderStats(ds){
   document.getElementById('statsBar').innerHTML=
     '<div class="stat"><div class="val">'+total+'</div><div class="lbl">Deals</div></div>'+
     '<div class="stat"><div class="val hot">-'+best.toFixed(0)+'%</div><div class="lbl">Hoogste</div></div>'+
-    '<div class="stat"><div class="val profit">\u20AC'+totalProfit.toFixed(0)+'</div><div class="lbl">MP winst</div></div>'+
+    '<div class="stat"><div class="val profit">€'+totalProfit.toFixed(0)+'</div><div class="lbl">MP winst</div></div>'+
     '<div class="stat"><div class="val">'+shops+'</div><div class="lbl">Shops</div></div>';
 }
 
-function render(){
-  const ds=flt();
-  document.getElementById('cnt').textContent=ds.length+' deals';
-  renderStats(ds);
+// ===================== RENDER =====================
+function escAttr(s){return (s||'').replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escHtml(s){return (s||'').replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+
+function buildTags(d,ship){
+  let tags='';
+  if(d.mp_median_price){
+    const pr=(d.mp_profit||0)-ship;
+    tags+='<span class="tag tag-b">MP €'+d.mp_median_price.toFixed(0)+'</span>';
+    tags+='<span class="tag '+(pr>=0?'tag-g':'tag-r')+'">'+(pr>=0?'+':'')+'€'+pr.toFixed(0)+'</span>';
+  }
+  if(d.tweakers_price)tags+='<span class="tag tag-b" title="Tweakers Pricewatch">TW €'+d.tweakers_price.toFixed(0)+'</span>';
+  if(d.is_verified&&!d.is_fake_discount){
+    const src=d.verification_source||'';
+    tags+='<span class="tag tag-g">✅ ECHT'+(src?' ('+escHtml(src)+')':'')+'</span>';
+  }
+  if(d.is_fake_discount)tags+='<span class="tag tag-r">⚠️ NEP</span>';
+  if(d.coupon_code)tags+='<span class="tag tag-c">🎟 '+escHtml(d.coupon_code)+'</span>';
+  return tags;
+}
+
+function fmtTime(found_at){
+  if(!found_at)return '';
+  const d=new Date(found_at);
+  return d.toLocaleString('nl-NL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+
+function renderCards(ds){
   const el=document.getElementById('dl');
-  if(!ds.length){el.innerHTML='<div class="empty"><p style="font-size:28px;opacity:.3">&#128269;</p><p>Geen deals gevonden</p></div>';return}
+  // Compute "hot" threshold: top-3 of >=70% korting
+  const sortedByDisc=[...ds].sort((a,b)=>(b.real_discount_percent||b.discount_percent)-(a.real_discount_percent||a.discount_percent));
+  const hotIds=new Set(sortedByDisc.slice(0,3).filter(d=>(d.real_discount_percent||d.discount_percent)>=60).map(d=>d.url));
+  let h='';
+  for(const d of ds){
+    const disc=d.real_discount_percent||d.discount_percent;
+    const dCls=disc>=60?'disc-hot':disc>=40?'disc-warm':'disc-cool';
+    const cls=['card'];
+    if(d.is_fake_discount)cls.push('fake');
+    if(d.is_verified&&!d.is_fake_discount)cls.push('veri');
+    if(hotIds.has(d.url))cls.push('hot');
+    const shop=d.shop.split('(')[0].trim();
+    const flag=d.country_flag||'';
+    const ship=d.shipping_cost||0;
+    const tags=buildTags(d,ship);
+    h+='<a class="'+cls.join(' ')+'" href="'+escAttr(d.url)+'" target="_blank" rel="noopener" title="'+escAttr(d.product_name)+'">'+
+      '<div class="c-row1">'+
+        '<span class="shop-pill"><span class="flag">'+flag+'</span>'+escHtml(shop)+'</span>'+
+        '<span class="disc '+dCls+'">−'+disc.toFixed(0)+'%</span>'+
+      '</div>'+
+      '<div class="c-name">'+escHtml(d.product_name)+'</div>'+
+      '<div class="c-prices">'+
+        '<span class="c-now">€'+d.current_price.toFixed(2)+'</span>'+
+        '<span class="c-was">€'+d.original_price.toFixed(0)+'</span>'+
+      '</div>'+
+      (tags?'<div class="c-tags">'+tags+'</div>':'')+
+      '<div class="c-foot">'+
+        '<span class="c-time">📅 '+fmtTime(d.found_at)+'</span>'+
+        '<span class="c-arrow">Bekijk →</span>'+
+      '</div>'+
+      '</a>';
+  }
+  el.innerHTML=h;
+}
 
+function renderTable(ds){
   const thCls=c=>tblSort===c?(tblAsc?'sorted-asc':'sorted'):'';
-
-  let h='<table><thead><tr>'+
+  let h='<div class="tbl-wrap"><table><thead><tr>'+
     '<th class="'+thCls('product_name')+'" onclick="sortTable(\'product_name\')">Product</th>'+
     '<th class="'+thCls('shop')+'" onclick="sortTable(\'shop\')">Shop</th>'+
     '<th class="'+thCls('current_price')+'" onclick="sortTable(\'current_price\')">Prijs</th>'+
@@ -409,111 +551,255 @@ function render(){
     '<th class="'+thCls('found_at')+'" onclick="sortTable(\'found_at\')">Tijd</th>'+
     '<th></th>'+
     '</tr></thead><tbody>';
-
   for(const d of ds){
     const disc=d.real_discount_percent||d.discount_percent;
     const dCls=disc>=60?'disc-hot':disc>=40?'disc-warm':'disc-cool';
     const nep=d.is_fake_discount?' nep-row':'';
     const veri=(d.is_verified&&!d.is_fake_discount)?' veri-row':'';
-    const t=d.found_at?new Date(d.found_at).toLocaleString('nl-NL',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
+    const t=fmtTime(d.found_at);
     const shop=d.shop.split('(')[0].trim();
     const flag=d.country_flag||'';
     const ship=d.shipping_cost||0;
-
-    let tags='';
-    if(d.mp_median_price){const pr=(d.mp_profit||0)-ship;tags+='<span class="tag tag-b">MP \u20AC'+d.mp_median_price.toFixed(0)+'</span><span class="tag '+(pr>=0?'tag-g':'tag-r')+'">'+(pr>=0?'+':'')+'\u20AC'+pr.toFixed(0)+'</span>'}
-    if(d.tweakers_price)tags+='<span class="tag tag-b" title="Tweakers Pricewatch prijs">TW \u20AC'+d.tweakers_price.toFixed(0)+'</span>';
-    if(d.is_verified&&!d.is_fake_discount){const src=d.verification_source||'';tags+='<span class="tag tag-g" title="Geverifieerd via '+(src||'onbekend')+'">ECHT'+(src?' ('+src+')':'')+'</span>'}
-    if(d.is_fake_discount)tags+='<span class="tag tag-r">NEP</span>';
-    if(d.coupon_code)tags+='<span class="tag tag-c">'+d.coupon_code+'</span>';
-
+    const tags=buildTags(d,ship);
     const name=d.product_name.length>55?d.product_name.substring(0,55)+'...':d.product_name;
-
-    h+='<tr class="'+nep+veri+'" title="'+d.product_name.replace(/"/g,'&quot;')+'">'+
-      '<td class="name-col">'+name+'</td>'+
-      '<td><span class="shop-badge">'+flag+' '+shop+'</span></td>'+
-      '<td style="font-weight:700">\u20AC'+d.current_price.toFixed(2)+'</td>'+
-      '<td style="text-decoration:line-through;color:#555">\u20AC'+d.original_price.toFixed(0)+'</td>'+
-      '<td><span class="disc-badge '+dCls+'">-'+disc.toFixed(0)+'%</span></td>'+
+    h+='<tr class="'+nep+veri+'">'+
+      '<td class="name-col">'+escHtml(name)+'</td>'+
+      '<td><span class="shop-pill">'+flag+' '+escHtml(shop)+'</span></td>'+
+      '<td style="font-weight:700">€'+d.current_price.toFixed(2)+'</td>'+
+      '<td style="text-decoration:line-through;color:#555">€'+d.original_price.toFixed(0)+'</td>'+
+      '<td><span class="disc '+dCls+'" style="font-size:13px;padding:2px 8px">−'+disc.toFixed(0)+'%</span></td>'+
       '<td>'+tags+'</td>'+
       '<td style="color:#555;font-size:11px">'+t+'</td>'+
-      '<td><a href="'+d.url+'" target="_blank" rel="noopener" class="link-btn">Bekijk</a></td>'+
+      '<td><a href="'+escAttr(d.url)+'" target="_blank" rel="noopener" class="link-btn">Bekijk</a></td>'+
       '</tr>';
   }
-
-  h+='</tbody></table>';
-  el.innerHTML=h;
+  h+='</tbody></table></div>';
+  document.getElementById('dl').innerHTML=h;
 }
 
-// ===================== SCAN TRIGGER =====================
+function render(){
+  const ds=flt();
+  document.getElementById('cnt').textContent=ds.length+' deals';
+  renderStats(ds);
+  if(!ds.length){
+    document.getElementById('dl').innerHTML='<div class="empty"><div class="ic">🔍</div><div class="t1">Geen deals gevonden</div><div class="t2">Pas je filters aan of doe een nieuwe scan</div></div>';
+    return;
+  }
+  if(VIEW==='cards')renderCards(ds);
+  else renderTable(ds);
+}
+
+// ===================== SCAN TRIGGER (FIXED) =====================
 const GH_REPO='thegaveryahoo/pricedrop';
 const GH_WORKFLOW='scan.yml';
 const PAT_KEY='pd_github_pat';
+const SCAN_STATE_KEY='pd_scan_state'; // {start_at, run_id, status, attempts}
+const MAX_SCAN_DURATION=8*60*1000;     // 8 minutes hard timeout
+const POLL_INTERVAL=15*1000;           // poll every 15s
+const PAT_FAIL_KEY='pd_pat_fails';
+const PAT_FAIL_MAX=3;
 
 // Auto-save PAT from URL parameter (?pat=ghp_xxx)
 (function(){const u=new URLSearchParams(location.search);const p=u.get('pat');if(p){localStorage.setItem(PAT_KEY,p);history.replaceState(null,'',location.pathname)}})();
 
 function getPat(){return localStorage.getItem(PAT_KEY)}
+function getScanState(){try{return JSON.parse(localStorage.getItem(SCAN_STATE_KEY)||'null')}catch(e){return null}}
+function setScanState(s){if(s)localStorage.setItem(SCAN_STATE_KEY,JSON.stringify(s));else localStorage.removeItem(SCAN_STATE_KEY)}
+
+function showProgress(msg,pct){
+  const p=document.getElementById('scanProgress');
+  const t=document.getElementById('scanProgressText');
+  const f=document.getElementById('scanProgressFill');
+  p.classList.add('show');
+  t.innerHTML='<span class="spinner"></span>'+msg;
+  if(typeof pct==='number')f.style.width=Math.min(100,Math.max(0,pct))+'%';
+}
+function hideProgress(){document.getElementById('scanProgress').classList.remove('show')}
+
+function setScanBtn(state,text){
+  const btn=document.getElementById('scanBtn');
+  btn.classList.remove('running','err','ok');
+  if(state)btn.classList.add(state);
+  btn.textContent=text;
+}
+
 function savePat(){
   const v=document.getElementById('patInput').value.trim();
-  if(v){localStorage.setItem(PAT_KEY,v);document.getElementById('patModal').style.display='none';triggerScan()}
+  if(v){
+    localStorage.setItem(PAT_KEY,v);
+    localStorage.removeItem(PAT_FAIL_KEY);
+    document.getElementById('patModal').style.display='none';
+    triggerScan();
+  }
 }
+
+let _scanTimer=null;
 
 async function triggerScan(){
   const pat=getPat();
   if(!pat){document.getElementById('patModal').style.display='flex';return}
-  const btn=document.getElementById('scanBtn');
-  btn.textContent='Starten...';btn.classList.add('running');btn.classList.remove('err');
+
+  // Dedup: if scan already running, just resume polling
+  const existing=getScanState();
+  if(existing && (Date.now()-existing.start_at)<MAX_SCAN_DURATION){
+    showProgress('Scan loopt al — bezig...');
+    setScanBtn('running','Loopt...');
+    schedulePoll(pat);
+    return;
+  }
+
+  // Trigger new scan
+  const start_at=Date.now();
+  setScanBtn('running','Starten...');
+  showProgress('Scan starten...',5);
+
   try{
     const r=await fetch('https://api.github.com/repos/'+GH_REPO+'/actions/workflows/'+GH_WORKFLOW+'/dispatches',{
       method:'POST',
       headers:{'Authorization':'Bearer '+pat,'Accept':'application/vnd.github+json','Content-Type':'application/json'},
       body:JSON.stringify({ref:'master'})
     });
+
     if(r.status===204){
-      btn.textContent='Gestart!';
-      setTimeout(()=>{btn.textContent='SCAN';btn.classList.remove('running')},3000);
-      // Poll voor resultaat na 2 min
-      setTimeout(()=>pollScanResult(pat),120000);
+      // Success — workflow_dispatch returns 204 but no run_id. We'll find it via runs API.
+      setScanState({start_at,run_id:null,status:'queued',attempts:0});
+      localStorage.removeItem(PAT_FAIL_KEY);
+      setScanBtn('running','Loopt...');
+      showProgress('Gestart! Even wachten op GitHub...',10);
+      // First poll after 8s (workflow needs a moment to register)
+      _scanTimer=setTimeout(()=>pollScanResult(pat),8000);
     }else if(r.status===401||r.status===403){
-      btn.textContent='Token ongeldig';btn.classList.remove('running');btn.classList.add('err');
-      localStorage.removeItem(PAT_KEY);
-      setTimeout(()=>{btn.textContent='SCAN';btn.classList.remove('err')},3000);
+      handlePatFail();
     }else{
-      const t=await r.text();
-      btn.textContent='Fout ('+r.status+')';btn.classList.remove('running');btn.classList.add('err');
-      setTimeout(()=>{btn.textContent='SCAN';btn.classList.remove('err')},3000);
+      const txt=await r.text().catch(()=>'');
+      setScanBtn('err','Fout '+r.status);
+      hideProgress();
+      console.error('Scan trigger failed:',r.status,txt);
+      setTimeout(()=>setScanBtn(null,'SCAN'),4000);
     }
   }catch(e){
-    btn.textContent='Netwerk fout';btn.classList.remove('running');btn.classList.add('err');
-    setTimeout(()=>{btn.textContent='SCAN';btn.classList.remove('err')},3000);
+    setScanBtn('err','Netwerk fout');
+    hideProgress();
+    console.error('Scan trigger error:',e);
+    setTimeout(()=>setScanBtn(null,'SCAN'),4000);
   }
 }
 
-async function pollScanResult(pat){
-  // Check of de workflow klaar is, dan pagina herladen
-  try{
-    const r=await fetch('https://api.github.com/repos/'+GH_REPO+'/actions/workflows/'+GH_WORKFLOW+'/runs?per_page=1&status=completed',{
-      headers:{'Authorization':'Bearer '+pat,'Accept':'application/vnd.github+json'}
-    });
-    if(r.ok){
-      const d=await r.json();
-      if(d.workflow_runs&&d.workflow_runs[0]){
-        const lastRun=new Date(d.workflow_runs[0].updated_at);
-        const now=new Date();
-        // Als de laatste run minder dan 5 min geleden klaar was → refresh
-        if((now-lastRun)<300000){
-          location.reload();
-          return;
-        }
-      }
-    }
-  }catch(e){}
-  // Nog niet klaar, probeer over 30s opnieuw (max 5 min totaal)
-  setTimeout(()=>pollScanResult(pat),30000);
+function handlePatFail(){
+  const fails=+(localStorage.getItem(PAT_FAIL_KEY)||0)+1;
+  localStorage.setItem(PAT_FAIL_KEY,''+fails);
+  if(fails>=PAT_FAIL_MAX){
+    localStorage.removeItem(PAT_KEY);
+    localStorage.removeItem(PAT_FAIL_KEY);
+    setScanBtn('err','Token ongeldig');
+    hideProgress();
+    setTimeout(()=>{setScanBtn(null,'SCAN');document.getElementById('patModal').style.display='flex'},2000);
+  }else{
+    setScanBtn('err','Auth fout ('+fails+'/'+PAT_FAIL_MAX+')');
+    hideProgress();
+    setTimeout(()=>setScanBtn(null,'SCAN'),3000);
+  }
 }
 
-// ===================== SCAN TIJD =====================
+function schedulePoll(pat){
+  if(_scanTimer)clearTimeout(_scanTimer);
+  _scanTimer=setTimeout(()=>pollScanResult(pat),POLL_INTERVAL);
+}
+
+async function pollScanResult(pat){
+  const state=getScanState();
+  if(!state){hideProgress();setScanBtn(null,'SCAN');return}
+
+  const elapsed=Date.now()-state.start_at;
+  // Hard timeout
+  if(elapsed>MAX_SCAN_DURATION){
+    setScanState(null);
+    hideProgress();
+    setScanBtn('err','Time-out (8 min)');
+    setTimeout(()=>setScanBtn(null,'SCAN'),5000);
+    return;
+  }
+
+  const elapsedSec=Math.floor(elapsed/1000);
+  const elapsedTxt=elapsedSec<60?elapsedSec+'s':Math.floor(elapsedSec/60)+'m '+(elapsedSec%60)+'s';
+  const pctEstimate=Math.min(85,10+elapsed/MAX_SCAN_DURATION*75);
+
+  try{
+    // Get recent runs (last 5)
+    const r=await fetch('https://api.github.com/repos/'+GH_REPO+'/actions/workflows/'+GH_WORKFLOW+'/runs?per_page=5',{
+      headers:{'Authorization':'Bearer '+pat,'Accept':'application/vnd.github+json'}
+    });
+
+    if(r.status===401||r.status===403){
+      handlePatFail();
+      setScanState(null);
+      return;
+    }
+    if(!r.ok)throw new Error('runs API '+r.status);
+
+    const data=await r.json();
+    const runs=data.workflow_runs||[];
+
+    // Find OUR run: first run where created_at >= scan_start_at - 30s buffer
+    const ourRun=runs.find(run=>{
+      const createdAt=new Date(run.created_at).getTime();
+      return createdAt>=(state.start_at-30000);
+    });
+
+    if(!ourRun){
+      // Run not yet visible — keep polling
+      showProgress('Wachten op start... ('+elapsedTxt+')',pctEstimate);
+      schedulePoll(pat);
+      return;
+    }
+
+    // Update state with run id
+    if(state.run_id!==ourRun.id){
+      state.run_id=ourRun.id;
+      setScanState(state);
+    }
+
+    if(ourRun.status==='completed'){
+      // Done — refresh page
+      setScanState(null);
+      hideProgress();
+      if(ourRun.conclusion==='success'){
+        setScanBtn('ok','Klaar!');
+        showProgress('Pagina ververst...',100);
+        setTimeout(()=>location.reload(),1200);
+      }else{
+        setScanBtn('err','Scan faalde');
+        setTimeout(()=>setScanBtn(null,'SCAN'),5000);
+      }
+      return;
+    }
+
+    // In progress — show status
+    const statusTxt=ourRun.status==='queued'?'In wachtrij':'Loopt';
+    showProgress(statusTxt+'... ('+elapsedTxt+')',pctEstimate);
+    schedulePoll(pat);
+
+  }catch(e){
+    console.error('Poll error:',e);
+    showProgress('Verbinding wankel... ('+elapsedTxt+')',pctEstimate);
+    schedulePoll(pat);
+  }
+}
+
+function resumeScanIfRunning(){
+  const state=getScanState();
+  if(!state)return;
+  const elapsed=Date.now()-state.start_at;
+  if(elapsed>MAX_SCAN_DURATION){setScanState(null);return}
+  const pat=getPat();
+  if(!pat){setScanState(null);return}
+  // Resume polling
+  setScanBtn('running','Loopt...');
+  showProgress('Scan loopt nog...');
+  schedulePoll(pat);
+}
+
+// ===================== SCAN TIME =====================
 function updateScanTime(){
   const el=document.getElementById('scanTime');
   const sp=document.getElementById('sp'),st=document.getElementById('st');

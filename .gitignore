@@ -5,3 +5,4 @@ deals_report.html
 *.output
 .env
 *.env
+*.bak
