@@ -45,3 +45,4 @@
 **Bestanden gewijzigd:**
 - `scanner.py` — context-recovery + timeout per scraper
 - `.github/workflows/scan.yml` — timeout verhoogd van 20→45 minuten (14 scrapers × 120s max)
+`n## v4.1.0 — 27 apr 2026`n- 🎨 Warme nieuwe kleurstelling: rood-goud i.p.v. blauw-cyaan`n- ⟳ Refresh-knop in footer naast changelog`n- 📱 Pull-to-refresh: trek omlaag om te verversen`n- 🃏 Card view verbeterd met betere contrasten
