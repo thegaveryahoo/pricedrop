@@ -211,18 +211,18 @@ html,body{background:#0f0a1a;color:#f0e8f0;font-family:-apple-system,BlinkMacSys
 <!-- PIN SCREEN -->
 <div class="pin-s" id="pin-s">
   <div class="pin-logo">
-    <svg viewBox="0 0 100 100"><defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="100%" stop-color="#ffd93d"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="url(#pg)"/><text x="50" y="42" text-anchor="middle" font-size="28" font-weight="bold" fill="white" font-family="system-ui">DEEF</text><text x="50" y="72" text-anchor="middle" font-size="22" fill="rgba(255,255,255,.8)" font-family="system-ui">DROP</text></svg>
+    <svg viewBox="0 0 100 100"><defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="100%" stop-color="#ffd93d"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="url(#pg"/><text x="50" y="42" text-anchor="middle" font-size="28" font-weight="bold" fill="white" font-family="system-ui">DEEF</text><text x="50" y="72" text-anchor="middle" font-size="22" fill="rgba(255,255,255,.8" font-family="system-ui">DROP</text></svg>
     <b>Deef's PriceDrop</b>
     <small>Prijsfout-detector</small>
   </div>
   <div class="pin-lbl" id="pin-lbl">Voer je PIN in</div>
   <div class="pin-dots" id="pin-dots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
   <div class="pin-err h" id="pin-err">Onjuiste PIN</div>
-  <div class="pin-pad">
-    <button class="pin-b" onclick="pinPress('1')">1</button><button class="pin-b" onclick="pinPress('2')">2</button><button class="pin-b" onclick="pinPress('3')">3</button>
-    <button class="pin-b" onclick="pinPress('4')">4</button><button class="pin-b" onclick="pinPress('5')">5</button><button class="pin-b" onclick="pinPress('6')">6</button>
-    <button class="pin-b" onclick="pinPress('7')">7</button><button class="pin-b" onclick="pinPress('8')">8</button><button class="pin-b" onclick="pinPress('9')">9</button>
-    <button class="pin-b" style="visibility:hidden"></button><button class="pin-b" onclick="pinPress('0')">0</button><button class="pin-b" onclick="pinBack()">⌫</button>
+  <div class="pin-pad" id="pin-pad">
+    <button class="pin-b" data-d="'1'">1</button><button class="pin-b" data-d="'2'">2</button><button class="pin-b" data-d="'3'">3</button>
+    <button class="pin-b" data-d="'4'">4</button><button class="pin-b" data-d="'5'">5</button><button class="pin-b" data-d="'6'">6</button>
+    <button class="pin-b" data-d="'7'">7</button><button class="pin-b" data-d="'8'">8</button><button class="pin-b" data-d="'9'">9</button>
+    <button class="pin-b" style="visibility:hidden"></button><button class="pin-b" data-d="'0'">0</button><button class="pin-b" onclick="pinBack(">⌫</button>
   </div>
 </div>
 
@@ -231,11 +231,11 @@ html,body{background:#0f0a1a;color:#f0e8f0;font-family:-apple-system,BlinkMacSys
 <div class="hdr">
   <div class="h1">
     <div class="logo">
-      <svg viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="100%" stop-color="#ffd93d"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="url(#g)"/><text x="50" y="42" text-anchor="middle" font-size="28" font-weight="bold" fill="white" font-family="system-ui">D</text><text x="50" y="72" text-anchor="middle" font-size="20" fill="rgba(255,255,255,.8)" font-family="system-ui">DROP</text></svg>
+      <svg viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff6b6b"/><stop offset="100%" stop-color="#ffd93d"/></linearGradient></defs><rect width="100" height="100" rx="22" fill="url(#g"/><text x="50" y="42" text-anchor="middle" font-size="28" font-weight="bold" fill="white" font-family="system-ui">D</text><text x="50" y="72" text-anchor="middle" font-size="20" fill="rgba(255,255,255,.8" font-family="system-ui">DROP</text></svg>
       <b>Deef's <span>PriceDrop</span></b>
     </div>
     <div class="hdr-right">
-      <button class="scan-btn" id="scanBtn" onclick="triggerScan()">SCAN</button>
+      <button class="scan-btn" id="scanBtn" onclick="triggerScan(">SCAN</button>
       <div class="sp sp-ok" id="sp"><div class="d"></div><span id="st">-</span></div>
     </div>
   </div>
@@ -267,10 +267,10 @@ html,body{background:#0f0a1a;color:#f0e8f0;font-family:-apple-system,BlinkMacSys
   <div class="ftr-left">
     <span id="ver">v4.1.0</span>
     <button class="cl-btn" onclick="document.getElementById('clm').style.display='flex'">📋 Changelog</button>
-    <button class="rf-btn" onclick="location.reload()" title="Verversen">⟳</button>
+    <button class="rf-btn" onclick="location.reload(" title="Verversen">⟳</button>
   </div>
   <div class="ftr-right">
-    <button class="v-toggle" id="vToggle" onclick="toggleView()">🃏 Cards</button>
+    <button class="v-toggle" id="vToggle" onclick="toggleView(">🃏 Cards</button>
     <span id="cnt">0 deals</span>
   </div>
 </div>
@@ -338,7 +338,7 @@ html,body{background:#0f0a1a;color:#f0e8f0;font-family:-apple-system,BlinkMacSys
     <input type="password" id="patInput" placeholder="github_pat_...">
     <div class="btns">
       <button class="pat-cancel" onclick="document.getElementById('patModal').style.display='none'">Annuleer</button>
-      <button class="pat-save" onclick="savePat()">Opslaan</button>
+      <button class="pat-save" onclick="savePat(">Opslaan</button>
     </div>
   </div>
 </div>
@@ -365,21 +365,21 @@ function recFail(){
 }
 function clrFail(){localStorage.removeItem(PD_TRIES);localStorage.removeItem(PD_LOCK)}
 
-function initPin(){
+function initPin(){console.log("[PIN] init");if(isLocked()&&Date.now()>=+(localStorage.getItem(PD_LOCK)||0)){localStorage.removeItem(PD_LOCK);localStorage.removeItem(PD_TRIES)}
   if(Date.now()<+(localStorage.getItem(PD_UNLOCK)||0)){showApp();return}
   if(!getHash()){pinMode='set-new';document.getElementById('pin-lbl').textContent='Kies een PIN van 6 cijfers'}
   else{pinMode='enter';document.getElementById('pin-lbl').textContent='Voer je PIN in'}
 }
 
-function pinPress(d){
+function pinPress(d){console.log("[PIN] press",d);
   if(isLocked()){document.getElementById('pin-lbl').textContent='Geblokkeerd — '+lockMins()+' min';return}
   if(pinBuf.length>=6)return;
   pinBuf+=d;renderDots();
   document.getElementById('pin-err').classList.add('h');
   if(pinBuf.length===6)setTimeout(handlePin,120);
 }
-function pinBack(){if(!pinBuf.length)return;pinBuf=pinBuf.slice(0,-1);renderDots()}
-function renderDots(s){document.querySelectorAll('.pin-dot').forEach((d,i)=>{d.classList.remove('ok','err');if(s==='err')d.classList.add('err');else if(i<pinBuf.length)d.classList.add('ok')})}
+function pinBack(){console.log("[PIN] back");if(!pinBuf.length)return;pinBuf=pinBuf.slice(0,-1);renderDots()}
+function renderDots(s){document.querySelectorAll('.pin-dot').forEach(function(d,i){d.classList.remove('ok','err');if(s==='err')d.classList.add('err');else if(i<pinBuf.length)d.classList.add('ok')})}
 function pinErr(m){const e=document.getElementById('pin-err');e.textContent=m||'Onjuiste PIN';e.classList.remove('h');renderDots('err');setTimeout(()=>{pinBuf='';renderDots()},700)}
 
 async function handlePin(){
@@ -404,7 +404,7 @@ function showApp(){
 }
 
 // ===================== DEAL DATA =====================
-const ST='27-04-2026 22:37';
+const ST='27-04-2026 22:48';
 let D=[],P=168,S='discount_percent',Q='',MP=0,HIDE_NEP=true,ONLY_VERI=false;
 let VIEW='cards';
 let tblSort='discount_percent',tblAsc=false;
@@ -555,13 +555,13 @@ function renderCards(ds){
 function renderTable(ds){
   const thCls=c=>tblSort===c?(tblAsc?'sorted-asc':'sorted'):'';
   let h='<div class="tbl-wrap"><table><thead><tr>'+
-    '<th class="'+thCls('product_name')+'" onclick="sortTable(\'product_name\')">Product</th>'+
-    '<th class="'+thCls('shop')+'" onclick="sortTable(\'shop\')">Shop</th>'+
-    '<th class="'+thCls('current_price')+'" onclick="sortTable(\'current_price\')">Prijs</th>'+
-    '<th class="'+thCls('original_price')+'" onclick="sortTable(\'original_price\')">Was</th>'+
-    '<th class="'+thCls('discount_percent')+'" onclick="sortTable(\'discount_percent\')">Korting</th>'+
+    '<th class="'+thCls('product_name')+'" onclick="sortTable(\'product_name\'">Product</th>'+
+    '<th class="'+thCls('shop')+'" onclick="sortTable(\'shop\'">Shop</th>'+
+    '<th class="'+thCls('current_price')+'" onclick="sortTable(\'current_price\'">Prijs</th>'+
+    '<th class="'+thCls('original_price')+'" onclick="sortTable(\'original_price\'">Was</th>'+
+    '<th class="'+thCls('discount_percent')+'" onclick="sortTable(\'discount_percent\'">Korting</th>'+
     '<th>Info</th>'+
-    '<th class="'+thCls('found_at')+'" onclick="sortTable(\'found_at\')">Tijd</th>'+
+    '<th class="'+thCls('found_at')+'" onclick="sortTable(\'found_at\'">Tijd</th>'+
     '<th></th>'+
     '</tr></thead><tbody>';
   for(const d of ds){
