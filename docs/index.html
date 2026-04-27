@@ -404,7 +404,7 @@ function showApp(){
 }
 
 // ===================== DEAL DATA =====================
-const ST='27-04-2026 23:04';
+const ST='27-04-2026 23:05';
 let D=[],P=168,S='discount_percent',Q='',MP=0,HIDE_NEP=true,ONLY_VERI=false;
 let VIEW='cards';
 let tblSort='discount_percent',tblAsc=false;
@@ -824,7 +824,7 @@ function updateScanTime(){
 updateScanTime();
 setInterval(updateScanTime,60000);
 
-try{initPin()}catch(e){console.error(e);showApp()}
+try{initPin()}catch(e){console.error('[PIN] init error:',e);showApp()}
 if('serviceWorker' in navigator){
   const swPath='/pricedrop/pricedrop_sw.js';
   navigator.serviceWorker.register(swPath).then(reg=>{reg.update()}).catch(()=>{});
