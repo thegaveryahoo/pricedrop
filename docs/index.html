@@ -287,43 +287,43 @@ html,body{background:#0f0a1a;color:#f0e8f0;font-family:-apple-system,BlinkMacSys
       <li>⟳ Refresh-knop in footer naast changelog</li>
       <li>📱 Pull-to-refresh: trek omlaag om te verversen</li>
       <li>🃏 Card view verbeterd met betere contrasten</li>
-    </ul>    <p>v4.0.2 â€” 27 apr 2026</p>
+    </ul>    <p>v4.0.2 — 27 apr 2026</p>
     <ul>
-      <li>ðŸƒ Card view (mobile-first) â€” tap een kaart om de deal te openen</li>
-      <li>ðŸ”¥ Hot-deal highlights â€” top deals krijgen een vlam-badge</li>
+      <li>ðŸƒ Card view (mobile-first) — tap een kaart om de deal te openen</li>
+      <li>ðŸ”¥ Hot-deal highlights — top deals krijgen een vlam-badge</li>
       <li>ðŸ” Toggle Card / Tabel weergave (footer-knop)</li>
       <li>âœ… SCAN-fix: progress-balk, max 8min timeout, dedup tegen dubbel-klik</li>
       <li>ðŸŽ¨ Modernere look: gradient borders, glow-effects, betere typografie</li>
     </ul>
-    <p>v3.4.0 â€” 4 apr 2026</p>
+    <p>v3.4.0 — 4 apr 2026</p>
     <ul>
       <li>Tweakers scraper gefixt: juiste URL (/pricewatch/deals/) + CSS selectors</li>
       <li>PAT via URL parameter: open ?pat=TOKEN op telefoon om SCAN knop te activeren</li>
     </ul>
-    <p>v3.3.0 â€” 4 apr 2026</p>
+    <p>v3.3.0 — 4 apr 2026</p>
     <ul>
       <li>SCAN knop: start scan direct vanuit de app (via GitHub Actions)</li>
       <li>Scan-tijd indicator: duidelijk zichtbaar wanneer laatste scan was</li>
       <li>Auto-refresh na scan (pollt GitHub voor resultaat)</li>
       <li>HA/Nabu Casa volledig ontkoppeld</li>
     </ul>
-    <p>v3.2.0 â€” 4 apr 2026</p>
+    <p>v3.2.0 — 4 apr 2026</p>
     <ul>
       <li>Tweakers Pricewatch integratie: deals scrapen + prijsverificatie</li>
       <li>Verificatiebron zichtbaar per deal (Tweakers/Idealo/Google)</li>
       <li>14+ shops</li>
     </ul>
-    <p>v3.1.0 â€” 4 apr 2026</p>
+    <p>v3.1.0 — 4 apr 2026</p>
     <ul>
       <li>Dark table layout (mobiel-geoptimaliseerd)</li>
       <li>Stats balk met totaal deals, hoogste korting, winst</li>
       <li>iBood scanner: sorteren op korting, early-stop, kleding-filter</li>
     </ul>
-    <p>v3.0.0 â€” 3 apr 2026</p>
+    <p>v3.0.0 — 3 apr 2026</p>
     <ul>
       <li>Cache-busting, semver, landvlaggen, Duitsâ†’NL, oude deals opruimen</li>
     </ul>
-    <p>v2.5.0 â€” 3 apr 2026</p>
+    <p>v2.5.0 — 3 apr 2026</p>
     <ul>
       <li>Rebranding: Deef's PriceDrop, PIN-login, nep-filter</li>
     </ul>
@@ -372,7 +372,7 @@ function initPin(){
 }
 
 function pinPress(d){
-  if(isLocked()){document.getElementById('pin-lbl').textContent='Geblokkeerd â€” '+lockMins()+' min';return}
+  if(isLocked()){document.getElementById('pin-lbl').textContent='Geblokkeerd — '+lockMins()+' min';return}
   if(pinBuf.length>=6)return;
   pinBuf+=d;renderDots();
   document.getElementById('pin-err').classList.add('h');
@@ -383,11 +383,11 @@ function renderDots(s){document.querySelectorAll('.pin-dot').forEach((d,i)=>{d.c
 function pinErr(m){const e=document.getElementById('pin-err');e.textContent=m||'Onjuiste PIN';e.classList.remove('h');renderDots('err');setTimeout(()=>{pinBuf='';renderDots()},700)}
 
 async function handlePin(){
-  if(isLocked()){document.getElementById('pin-lbl').textContent='Geblokkeerd â€” '+lockMins()+' min';pinBuf='';renderDots();return}
+  if(isLocked()){document.getElementById('pin-lbl').textContent='Geblokkeerd — '+lockMins()+' min';pinBuf='';renderDots();return}
   const h=await hashPin(pinBuf);
   if(pinMode==='enter'){
     if(h===getHash()){clrFail();localStorage.setItem(PD_UNLOCK,''+(Date.now()+PIN_SESSION));showApp()}
-    else{const l=recFail();if(l){document.getElementById('pin-lbl').textContent='Geblokkeerd â€” '+lockMins()+' min';document.querySelectorAll('.pin-b').forEach(b=>b.disabled=true);pinBuf='';renderDots()}else{const left=MAX_TRIES-+(localStorage.getItem(PD_TRIES)||0);pinErr('Onjuiste PIN â€” nog '+left)}}
+    else{const l=recFail();if(l){document.getElementById('pin-lbl').textContent='Geblokkeerd — '+lockMins()+' min';document.querySelectorAll('.pin-b').forEach(b=>b.disabled=true);pinBuf='';renderDots()}else{const left=MAX_TRIES-+(localStorage.getItem(PD_TRIES)||0);pinErr('Onjuiste PIN — nog '+left)}}
   }else if(pinMode==='set-new'){
     pinNew=pinBuf;pinMode='confirm';pinBuf='';renderDots();document.getElementById('pin-lbl').textContent='Bevestig je PIN';
   }else if(pinMode==='confirm'){
@@ -404,7 +404,7 @@ function showApp(){
 }
 
 // ===================== DEAL DATA =====================
-const ST='27-04-2026 22:31';
+const ST='27-04-2026 22:35';
 let D=[],P=168,S='discount_percent',Q='',MP=0,HIDE_NEP=true,ONLY_VERI=false;
 let VIEW='cards';
 let tblSort='discount_percent',tblAsc=false;
@@ -652,7 +652,7 @@ async function triggerScan(){
   if(!pat){document.getElementById('patModal').style.display='flex';return}
   const existing=getScanState();
   if(existing && (Date.now()-existing.start_at)<MAX_SCAN_DURATION){
-    showProgress('Scan loopt al â€” bezig...');
+    showProgress('Scan loopt al — bezig...');
     setScanBtn('running','Loopt...');
     schedulePoll(pat);
     return;
