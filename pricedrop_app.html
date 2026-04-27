@@ -631,6 +631,16 @@ const PAT_FAIL_MAX=3;
 // Auto-save PAT from URL parameter (?pat=ghp_xxx)
 (function(){const u=new URLSearchParams(location.search);const p=u.get('pat');if(p){localStorage.setItem(PAT_KEY,p);history.replaceState(null,'',location.pathname)}})();
 
+// Reset PIN via URL parameter (?resetpin=1)
+// Gebruik: https://thegaveryahoo.github.io/pricedrop/?resetpin=1
+(function(){
+  if(new URLSearchParams(location.search).get('resetpin')==='1'){
+    ['pd_pin_hash','pd_pin_tries','pd_pin_lock','pd_pin_unlock'].forEach(k=>localStorage.removeItem(k));
+    history.replaceState(null,'',location.pathname);
+    console.log('[PIN] Reset — stel een nieuwe PIN in');
+  }
+})();
+
 function getPat(){return localStorage.getItem(PAT_KEY)}
 function getScanState(){try{return JSON.parse(localStorage.getItem(SCAN_STATE_KEY)||'null')}catch(e){return null}}
 function setScanState(s){if(s)localStorage.setItem(SCAN_STATE_KEY,JSON.stringify(s));else localStorage.removeItem(SCAN_STATE_KEY)}

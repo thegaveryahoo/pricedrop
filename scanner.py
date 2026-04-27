@@ -249,11 +249,17 @@ def run_scan():
             args=["--disable-blink-features=AutomationControlled"],
         )
 
-        context = browser.new_context(
-            viewport={"width": 1920, "height": 1080},
-            locale="nl-NL",
-            user_agent=random_user_agent(),
-        )
+        def _make_context(browser_inst):
+            ctx = browser_inst.new_context(
+                viewport={"width": 1920, "height": 1080},
+                locale="nl-NL",
+                user_agent=random_user_agent(),
+            )
+            ctx.set_default_timeout(25000)           # 25s voor alle impliciete waits
+            ctx.set_default_navigation_timeout(30000) # 30s voor navigatie
+            return ctx
+
+        context = _make_context(browser)
 
         # === STAP 1: Scrape alle shops (met per-scraper timeout van 90s) ===
         
@@ -283,37 +289,28 @@ def run_scan():
             
             if error:
                 print(f"[{scraper_name}] ⚠️ {error}")
-                # Bij browser-crash: herstel context voor volgende scraper
-                err_str = str(error)
-                if "Target" in err_str or "closed" in err_str.lower():
-                    print(f"[{scraper_name}] ⚠️ Browser crash gedetecteerd — herstel context...")
+                # Na ELKE fout (timeout of crash): herstel context zodat zombie-thread
+                # de context van de volgende scraper niet kan corrumperen
+                print(f"[{scraper_name}] 🔄 Context reset na fout...")
+                try:
+                    context.close()
+                except Exception:
+                    pass
+                try:
+                    context = _make_context(browser)
+                    print(f"[{scraper_name}] ✅ Nieuwe context klaar")
+                except Exception as recovery_err:
+                    print(f"[{scraper_name}] ❌ Context-recovery mislukt: {recovery_err} — herstart browser...")
                     try:
-                        context.close()
+                        browser.close()
                     except Exception:
                         pass
-                    try:
-                        context = browser.new_context(
-                            viewport={"width": 1920, "height": 1080},
-                            locale="nl-NL",
-                            user_agent=random_user_agent(),
-                        )
-                        print(f"[{scraper_name}] ✅ Nieuwe context klaar")
-                    except Exception as recovery_err:
-                        print(f"[{scraper_name}] ❌ Context-recovery mislukt: {recovery_err} — herstart browser...")
-                        try:
-                            browser.close()
-                        except Exception:
-                            pass
-                        browser = p.chromium.launch(
-                            headless=True,
-                            args=["--disable-blink-features=AutomationControlled"],
-                        )
-                        context = browser.new_context(
-                            viewport={"width": 1920, "height": 1080},
-                            locale="nl-NL",
-                            user_agent=random_user_agent(),
-                        )
-                        print(f"[{scraper_name}] ✅ Nieuwe browser + context klaar")
+                    browser = p.chromium.launch(
+                        headless=True,
+                        args=["--disable-blink-features=AutomationControlled"],
+                    )
+                    context = _make_context(browser)
+                    print(f"[{scraper_name}] ✅ Nieuwe browser + context klaar")
                 continue  # skip naar volgende scraper
             
             if deals:

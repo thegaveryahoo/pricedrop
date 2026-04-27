@@ -22,12 +22,12 @@ def scrape(browser):
                 "Accept-Language": "nl-NL,nl;q=0.9,en;q=0.8",
             })
             page.goto(url, timeout=30000)
-            page.wait_for_timeout(5000)
+            page.wait_for_timeout(3000)
 
             # Scroll om meer deals te laden
             for _ in range(3):
                 page.evaluate("window.scrollBy(0, window.innerHeight)")
-                page.wait_for_timeout(1500)
+                page.wait_for_timeout(1000)
 
             # Zoek deal cards
             cards = page.query_selector_all('[data-testid="product-card"], [data-deal-id]')
