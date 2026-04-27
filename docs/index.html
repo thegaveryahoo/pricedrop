@@ -219,10 +219,10 @@ html,body{background:#0f0a1a;color:#f0e8f0;font-family:-apple-system,BlinkMacSys
   <div class="pin-dots" id="pin-dots"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
   <div class="pin-err h" id="pin-err">Onjuiste PIN</div>
   <div class="pin-pad" id="pin-pad">
-    <button class="pin-b" data-d="'1'">1</button><button class="pin-b" data-d="'2'">2</button><button class="pin-b" data-d="'3'">3</button>
-    <button class="pin-b" data-d="'4'">4</button><button class="pin-b" data-d="'5'">5</button><button class="pin-b" data-d="'6'">6</button>
-    <button class="pin-b" data-d="'7'">7</button><button class="pin-b" data-d="'8'">8</button><button class="pin-b" data-d="'9'">9</button>
-    <button class="pin-b" style="visibility:hidden"></button><button class="pin-b" data-d="'0'">0</button><button class="pin-b" onclick="pinBack(">⌫</button>
+    <button class="pin-b" data-d="1">1</button><button class="pin-b" data-d="2">2</button><button class="pin-b" data-d="3">3</button>
+    <button class="pin-b" data-d="4">4</button><button class="pin-b" data-d="5">5</button><button class="pin-b" data-d="6">6</button>
+    <button class="pin-b" data-d="7">7</button><button class="pin-b" data-d="8">8</button><button class="pin-b" data-d="9">9</button>
+    <button class="pin-b" style="visibility:hidden"></button><button class="pin-b" data-d="0">0</button><button class="pin-b" data-bk="1">⌫</button>
   </div>
 </div>
 
@@ -365,7 +365,22 @@ function recFail(){
 }
 function clrFail(){localStorage.removeItem(PD_TRIES);localStorage.removeItem(PD_LOCK)}
 
-function initPin(){console.log("[PIN] init");if(isLocked()&&Date.now()>=+(localStorage.getItem(PD_LOCK)||0)){localStorage.removeItem(PD_LOCK);localStorage.removeItem(PD_TRIES)}
+function setupPinButtons(){
+  var btns=document.querySelectorAll('.pin-b');
+  for(var i=0;i<btns.length;i++){(function(btn){
+    btn.addEventListener('pointerdown',function(e){
+      e.preventDefault();
+      if(btn.dataset.bk){pinBack();return}
+      if(btn.dataset.d){pinPress(btn.dataset.d)}
+    });
+    btn.addEventListener('click',function(e){
+      e.preventDefault();
+      if(btn.dataset.bk){pinBack();return}
+      if(btn.dataset.d){pinPress(btn.dataset.d)}
+    });
+  })(btns[i])}
+}
+function initPin(){console.log("[PIN] init");setupPinButtons();if(isLocked()&&Date.now()>=+(localStorage.getItem(PD_LOCK)||0)){localStorage.removeItem(PD_LOCK);localStorage.removeItem(PD_TRIES)}
   if(Date.now()<+(localStorage.getItem(PD_UNLOCK)||0)){showApp();return}
   if(!getHash()){pinMode='set-new';document.getElementById('pin-lbl').textContent='Kies een PIN van 6 cijfers'}
   else{pinMode='enter';document.getElementById('pin-lbl').textContent='Voer je PIN in'}
@@ -404,7 +419,7 @@ function showApp(){
 }
 
 // ===================== DEAL DATA =====================
-const ST='27-04-2026 22:48';
+const ST='27-04-2026 22:52';
 let D=[],P=168,S='discount_percent',Q='',MP=0,HIDE_NEP=true,ONLY_VERI=false;
 let VIEW='cards';
 let tblSort='discount_percent',tblAsc=false;
