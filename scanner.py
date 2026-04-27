@@ -12,6 +12,7 @@ import os
 import time
 import json
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -254,8 +255,12 @@ def run_scan():
             user_agent=random_user_agent(),
         )
 
-        # === STAP 1: Scrape alle shops (sequentiële uitvoering met foutafhandeling) ===
+        # === STAP 1: Scrape alle shops (met per-scraper timeout van 90s) ===
         
+        def _scrape_one(scraper_fn, ctx):
+            """Wrapper die scrape() aanroept — draait in aparte thread met timeout."""
+            return scraper_fn.scrape(ctx)
+
         for scraper_name in ACTIVE_SCRAPERS:
             if scraper_name not in SCRAPER_MAP:
                 print(f"[!] Onbekende scraper: {scraper_name}")
@@ -264,21 +269,22 @@ def run_scan():
             scraper = SCRAPER_MAP[scraper_name]
             print(f"\n--- {scraper_name.upper()} ---")
             
-            try:
-                deals = scraper.scrape(context)
-                if deals:
-                    print(f"[{scraper_name}] {len(deals)} deals gevonden (voor filter)")
-                    filtered = filter_deals(deals, scraper_name)
-                    print(f"[{scraper_name}] {len(filtered)} deals na filter")
-                    all_deals.extend(filtered)
-                    shops_scanned += 1
-                else:
-                    print(f"[{scraper_name}] 0 deals gevonden")
-                    
-            except Exception as e:
-                print(f"[{scraper_name}] FOUT: {e}")
+            deals = None
+            error = None
+            
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(_scrape_one, scraper, context)
+                try:
+                    deals = future.result(timeout=90)
+                except FuturesTimeoutError:
+                    error = f"TIMEOUT na 90s — scraper overgeslagen"
+                except Exception as e:
+                    error = str(e)
+            
+            if error:
+                print(f"[{scraper_name}] ⚠️ {error}")
                 # Bij browser-crash: herstel context voor volgende scraper
-                err_str = str(e)
+                err_str = str(error)
                 if "Target" in err_str or "closed" in err_str.lower():
                     print(f"[{scraper_name}] ⚠️ Browser crash gedetecteerd — herstel context...")
                     try:
@@ -308,6 +314,17 @@ def run_scan():
                             user_agent=random_user_agent(),
                         )
                         print(f"[{scraper_name}] ✅ Nieuwe browser + context klaar")
+                continue  # skip naar volgende scraper
+            
+            if deals:
+                print(f"[{scraper_name}] {len(deals)} deals gevonden (voor filter)")
+                filtered = filter_deals(deals, scraper_name)
+                print(f"[{scraper_name}] {len(filtered)} deals na filter")
+                all_deals.extend(filtered)
+                shops_scanned += 1
+            else:
+                print(f"[{scraper_name}] 0 deals gevonden")
+
         # --- einde scraper-loop ---
 
         # === STAP 1b: Importeer iBood bookmarklet deals (indien aanwezig) ===
