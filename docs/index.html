@@ -824,7 +824,7 @@ function updateScanTime(){
 updateScanTime();
 setInterval(updateScanTime,60000);
 
-initPin();
+try{initPin()}catch(e){console.error(e);showApp()}
 if('serviceWorker' in navigator){
   const swPath='/pricedrop/pricedrop_sw.js';
   navigator.serviceWorker.register(swPath).then(reg=>{reg.update()}).catch(()=>{});
