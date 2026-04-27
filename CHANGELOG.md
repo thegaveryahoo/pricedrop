@@ -1,5 +1,21 @@
 # PriceDrop Changelog
 
+## 2026-04-27 · v4.0.3 — Per-scraper timeout (scans bleven hangen)
+
+**Probleem:** v4.0.2 draaide scrapers sequentieel maar zonder per-scraper timeout. Één trage scraper (ibood Akamai, pepper anti-bot) blokkeerde de hele pipeline → workflow-timeout op 45 min → 0 deals.
+
+**Fix (scanner.py):**
+- `ThreadPoolExecutor` met `future.result(timeout=90)` per scraper
+- Trage scraper: na 90s overgeslagen, volgende draait gewoon door
+- Context-recovery intact bij browser-crashes
+- Max scantijd: 14 scrapers × 90s = 21 min (ruim binnen 45-min workflow)
+
+**Bestanden gewijzigd:**
+- `scanner.py` — `ThreadPoolExecutor` timeout per scraper
+
+**Workflow fix (was ook nog nodig):**
+- `.github/workflows/scan.yml` — `deploy_github.py` stap toegevoegd na scanner
+
 ## 2026-04-27 · v4.0.2 — Threading-bugfix (scans deden het niet)
 
 **Probleem:** v4.0.1 introduceerde threading met context-recovery, maar drie bugs zorgden voor cascadefalen:
