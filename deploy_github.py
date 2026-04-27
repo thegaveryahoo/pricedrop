@@ -19,18 +19,22 @@ from config import DB_PATH
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 DOCS_DIR = os.path.join(PROJECT_DIR, "docs")
 TEMPLATE_PATH = os.path.join(PROJECT_DIR, "pricedrop_app.html")
-APP_VERSION = "4.0.2"
+APP_VERSION = "4.0.4"
 
 
 def get_all_deals():
-    """Haal alle deals uit de database."""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    c = conn.cursor()
-    c.execute("SELECT * FROM deals ORDER BY discount_percent DESC")
-    deals = [dict(row) for row in c.fetchall()]
-    conn.close()
-    return deals
+    """Haal alle deals uit de database (of lege lijst als DB niet bestaat)."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        c = conn.cursor()
+        c.execute("SELECT * FROM deals ORDER BY discount_percent DESC")
+        deals = [dict(row) for row in c.fetchall()]
+        conn.close()
+        return deals
+    except Exception as e:
+        print(f"[GitHub] Kon DB niet lezen: {e} — gebruik lege deals")
+        return []
 
 
 def generate_html():
@@ -42,10 +46,14 @@ def generate_html():
     now = datetime.now().strftime("%d-%m-%Y %H:%M")
     version = datetime.now().strftime("%Y%m%d%H%M")
 
-    # Haal scan info op
-    from database import get_last_scan
-    last_scan = get_last_scan()
-    shops_count = last_scan["shops_scanned"] if last_scan else 0
+    # Haal scan info op (fallback naar 0)
+    shops_count = 0
+    try:
+        from database import get_last_scan
+        last_scan = get_last_scan()
+        shops_count = last_scan["shops_scanned"] if last_scan else 0
+    except Exception:
+        pass
 
     # Vervang placeholders
     html = template.replace("__DEAL_DATA__", json.dumps(deals, ensure_ascii=False))
