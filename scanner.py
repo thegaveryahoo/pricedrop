@@ -11,6 +11,8 @@ import sys
 import os
 import time
 import json
+import threading
+import itertools
 from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -254,7 +256,28 @@ def run_scan():
             user_agent=random_user_agent(),
         )
 
-        # === STAP 1: Scrape alle shops ===
+        # === STAP 1: Scrape alle shops (threads met timeout + context-recovery) ===
+        SCRAPER_TIMEOUT = 120  # seconden per scraper
+        
+        scraper_results = []
+        scraper_lock = threading.Lock()
+        context_crashed = threading.Event()
+        
+        def _scrape_with_timeout(scraper_name, scraper, ctx):
+            """Voer één scraper uit met timeout. Bij falen: signal crash en skip."""
+            if context_crashed.is_set():
+                return
+            try:
+                deals = scraper.scrape(ctx)
+                with scraper_lock:
+                    scraper_results.append((scraper_name, deals, None))
+            except Exception as e:
+                err_str = str(e)
+                if "Target" in err_str or "Page" in err_str or "closed" in err_str.lower():
+                    context_crashed.set()  # signaal: context mo​​t vervangen
+                with scraper_lock:
+                    scraper_results.append((scraper_name, [], e))
+        
         for scraper_name in ACTIVE_SCRAPERS:
             if scraper_name not in SCRAPER_MAP:
                 print(f"[!] Onbekende scraper: {scraper_name}")
@@ -262,19 +285,65 @@ def run_scan():
 
             scraper = SCRAPER_MAP[scraper_name]
             print(f"\n--- {scraper_name.upper()} ---")
+            
+            t = threading.Thread(
+                target=_scrape_with_timeout,
+                args=(scraper_name, scraper, context),
+                daemon=True
+            )
+            t.start()
+            t.join(timeout=SCRAPER_TIMEOUT)
+            
+            if t.is_alive():
+                print(f"[{scraper_name}] ⏰ TIMEOUT (> {SCRAPER_TIMEOUT}s) — overgeslagen")
+                context_crashed.set()  # context is nu potentieel corrupt
+                continue
+            
+            if context_crashed.is_set():
+                # Context-recovery: maak nieuwe context + pagina's
+                print(f"[{scraper_name}] ⚠️ Context crash gedetecteerd — herstel browsercontext...")
+                try:
+                    context.close()
+                except Exception:
+                    pass
+                try:
+                    context = browser.new_context(
+                        viewport={"width": 1920, "height": 1080},
+                        locale="nl-NL",
+                        user_agent=random_user_agent(),
+                    )
+                    context_crashed.clear()
+                    print(f"[{scraper_name}] ✅ Nieuwe context klaar — ga verder")
+                except Exception as recovery_err:
+                    print(f"[{scraper_name}] ❌ Context-recovery mislukt: {recovery_err} — herstart Chromium...")
+                    try:
+                        browser.close()
+                    except Exception:
+                        pass
+                    browser = p.chromium.launch(
+                        headless=True,
+                        args=["--disable-blink-features=AutomationControlled"],
+                    )
+                    context = browser.new_context(
+                        viewport={"width": 1920, "height": 1080},
+                        locale="nl-NL",
+                        user_agent=random_user_agent(),
+                    )
+                    context_crashed.clear()
+                    print(f"[{scraper_name}] ✅ Nieuwe browser + context klaar")
 
-            try:
-                deals = scraper.scrape(context)
-                print(f"[{scraper_name}] {len(deals)} deals gevonden (voor filter)")
-
-                filtered = filter_deals(deals, scraper_name)
-                print(f"[{scraper_name}] {len(filtered)} deals na filter")
-
-                all_deals.extend(filtered)
-                shops_scanned += 1
-
-            except Exception as e:
-                print(f"[{scraper_name}] FOUT: {e}")
+            # Verwerk resultaten
+            for sname, deals, error in scraper_results:
+                if error:
+                    print(f"[{sname}] FOUT: {error}")
+                elif deals is not None:
+                    print(f"[{sname}] {len(deals)} deals gevonden (voor filter)")
+                    filtered = filter_deals(deals, sname)
+                    print(f"[{sname}] {len(filtered)} deals na filter")
+                    all_deals.extend(filtered)
+                    shops_scanned += 1
+            scraper_results.clear()
+        # --- einde scraper-loop ---
 
         # === STAP 1b: Importeer iBood bookmarklet deals (indien aanwezig) ===
         ibood_json_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ibood_deals.json")
