@@ -1,242 +1,149 @@
 """
-mydealz.de scraper — Duitse deals die naar NL verzonden kunnen worden.
-Focust op de Preisfehler (prijsfouten) groep + heetste deals.
+mydealz.de scraper — via RSS feed (geen Playwright, geen bot-detectie).
+Focust op trending deals + nieuwe deals.
 
-v2.1: Filtert verlopen/expired deals + betere prijsextractie.
+v3.0: Volledig herschreven op RSS+requests. Playwright verwijderd.
 """
 
 import re
-from scrapers.base import parse_dutch_price, respectful_delay
+import requests
+import xml.etree.ElementTree as ET
+import html
+from scrapers.base import parse_dutch_price
 
-# Shops/bronnen die we blokkeren (China, niet-EU)
+MYDEALZ_RSS_URLS = [
+    "https://www.mydealz.de/rss/trending",
+    "https://www.mydealz.de/rss/new",
+]
+
 BLOCKED_MERCHANTS = [
     'aliexpress', 'ali express', 'banggood', 'gearbest', 'geekbuying',
     'tomtop', 'cafago', 'lightinthebox', 'wish.com', 'temu', 'shein',
     'dhgate', 'miniinthebox', 'dealextreme', 'dx.com', 'goboo',
 ]
 
-MYDEALZ_URLS = [
-    "https://www.mydealz.de/gruppe/preisfehler",  # Prijsfouten!
-    "https://www.mydealz.de/neue-deals",           # Nieuwste deals
-    "https://www.mydealz.de/hot",                  # Heetste deals
-]
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Accept': 'application/rss+xml, text/xml, */*',
+    'Accept-Language': 'de-DE,de;q=0.9,nl;q=0.8',
+}
+
+NS = {
+    'pepper': 'http://www.pepper.com/rss',
+    'media':  'http://search.yahoo.com/mrss/',
+    'dc':     'http://purl.org/dc/elements/1.1/',
+}
 
 
-def _is_expired(article):
-    """Check of een deal als verlopen/expired gemarkeerd is."""
-    try:
-        # Mydealz markeert verlopen deals met specifieke classes
-        classes = article.get_attribute("class") or ""
-        if any(c in classes.lower() for c in ['expired', 'abgelaufen', 'thread--expired', 'thread--dimmed']):
-            return True
-
-        # Check op "abgelaufen" of "expired" badge/label
-        badges = article.query_selector_all('[class*="expired"], [class*="abgelaufen"], .cept-threadStatus, [class*="threadBadge"]')
-        for badge in badges:
-            text = badge.inner_text().strip().lower()
-            if any(w in text for w in ['abgelaufen', 'expired', 'beendet', 'vorbei', 'ausverkauft']):
-                return True
-
-        # Check op doorgestreepte/vervaagde deal indicator
-        overlay = article.query_selector('[class*="threadCardLayout--faded"]')
-        if overlay:
-            return True
-    except Exception:
-        pass
-    return False
+def _clean_title(title):
+    """Verwijder temperatuur-prefix van mydealz titles (bv '103° - Titel')."""
+    return re.sub(r'^\d+°\s*-\s*', '', title).strip()
 
 
-def _is_blocked_merchant(shop_name, title):
-    """Check of de merchant uit China/niet-EU komt."""
-    text = f"{shop_name} {title}".lower()
-    return any(blocked in text for blocked in BLOCKED_MERCHANTS)
+def _extract_prices_from_desc(desc_html, current_price):
+    """Zoek originele prijs in de HTML-beschrijving."""
+    if not desc_html or not current_price:
+        return None
+    text = html.unescape(desc_html)
+    found = []
+    # Euro-bedragen in beide notaties: €12,99 of 12,99€
+    for m in re.findall(r'€\s*([\d.,]+)|([\d.,]+)\s*€', text):
+        raw = m[0] or m[1]
+        p = parse_dutch_price('€' + raw)
+        if p and p > 0:
+            found.append(p)
+    if not found:
+        return None
+    candidates = [p for p in found if p > current_price * 1.05 and p < current_price * 20]
+    return max(candidates) if candidates else None
 
 
-def _extract_prices_smart(article):
-    """
-    Slimme prijsextractie — gebruikt specifieke elementen in plaats van
-    alle €-bedragen uit de tekst te halen.
-    """
-    current_price = None
-    original_price = None
-
-    # 1. Doorgestreepte prijs = originele prijs
-    strike_selectors = [
-        'span[class*="mute--text"] span[class*="lineThrough"]',
-        'span[class*="text--lineThrough"]',
-        'span[class*="threadItemCard-crossedPrice"]',
-        's',  # <s> tag = strikethrough
-    ]
-    for sel in strike_selectors:
-        el = article.query_selector(sel)
-        if el:
-            p = parse_dutch_price(el.inner_text())
-            if p and p > 0:
-                original_price = p
-                break
-
-    # 2. Deal-prijs = current price (de vetgedrukte/opvallende prijs)
-    price_selectors = [
-        '[class*="thread-price"]',
-        '[class*="threadItemCard-price"]',
-        'span[class*="threadPrice"]',
-        'span[class*="text--b"][class*="size--all-xl"]',
-        'span[class*="text--b"][class*="cept-tp"]',
-    ]
-    for sel in price_selectors:
-        el = article.query_selector(sel)
-        if el:
-            p = parse_dutch_price(el.inner_text())
-            if p and p > 0:
-                current_price = p
-                break
-
-    # 3. Alleen als specifieke selectors niks gaven, doe voorzichtige text scan
-    if not current_price or not original_price:
-        # Zoek prijzen maar alleen in de prijs-container, niet overal
-        price_container = article.query_selector('[class*="threadItem-price"], [class*="threadItemCard-price"]')
-        if price_container:
-            text = price_container.inner_text()
-            found = []
-            for match in re.findall(r'€\s*[\d.,]+', text):
-                p = parse_dutch_price(match)
-                if p and p > 0:
-                    found.append(p)
-            if found:
-                if not current_price:
-                    current_price = min(found)
-                if not original_price and len(found) >= 2:
-                    original_price = max(found)
-
-    # 4. Sanity check: current moet lager zijn dan original
-    if current_price and original_price:
-        if current_price >= original_price:
-            # Swap als ze per ongeluk omgedraaid zijn
-            if original_price < current_price:
-                current_price, original_price = original_price, current_price
-            else:
-                original_price = None
-
-    # 5. Sanity check: verschil mag niet absurd zijn
-    # (bijv. €0.77 current en €77 original = waarschijnlijk multipack vs single)
-    if current_price and original_price:
-        ratio = original_price / current_price
-        if ratio > 50:
-            # Te groot verschil — waarschijnlijk verkeerde prijzen opgepikt
-            original_price = None
-
-    return current_price, original_price
+def _extract_discount_from_title(title):
+    """Haal kortingspercentage uit titel."""
+    m = re.search(r'(\d{2,3})\s*%\s*(off|korting|rabatt|aus|sparen|goedkoper)', title, re.IGNORECASE)
+    if m:
+        return int(m.group(1))
+    return None
 
 
-def scrape(browser):
-    """Scrape mydealz.de deals. Geeft lijst van deal-dicts terug."""
+def scrape(browser=None):
+    """Scrape mydealz.de via RSS. browser-argument genegeerd (compatibiliteit)."""
     deals = []
     seen_urls = set()
 
-    for url in MYDEALZ_URLS:
+    for rss_url in MYDEALZ_RSS_URLS:
         try:
-            page = browser.new_page()
-            page.set_extra_http_headers({"Accept-Language": "de-DE,de;q=0.9,nl;q=0.8"})
-            page.goto(url, timeout=30000)
-            page.wait_for_timeout(3000)
+            r = requests.get(rss_url, headers=HEADERS, timeout=15)
+            r.raise_for_status()
 
-            for _ in range(3):
-                page.evaluate("window.scrollBy(0, window.innerHeight)")
-                page.wait_for_timeout(1000)
+            root = ET.fromstring(r.text)
+            channel = root.find('channel')
+            if channel is None:
+                continue
 
-            # mydealz deal cards (zelfde platform als Pepper)
-            articles = page.query_selector_all('article[class*="thread"], article[id*="thread"]')
-            if not articles:
-                articles = page.query_selector_all('[class*="threadGrid"], [class*="thread--"]')
+            items = channel.findall('item')
+            print(f"[mydealz] {len(items)} items in {rss_url.split('/')[-1]}")
 
-            expired_count = 0
-            blocked_count = 0
-            print(f"[mydealz] {len(articles)} deals op {url.split('/')[-1]}")
-
-            for article in articles:
+            for item in items:
                 try:
-                    # Check of deal verlopen is
-                    if _is_expired(article):
-                        expired_count += 1
+                    raw_title = (item.findtext('title') or '').strip()
+                    title = _clean_title(raw_title)
+                    if not title or len(title) < 5:
                         continue
 
-                    # Titel
-                    title_el = article.query_selector('a[class*="thread-title"], [class*="threadTitle"] a, strong a')
-                    if not title_el:
-                        title_el = article.query_selector('a[href*="/deals/"]')
-                    if not title_el:
+                    link = (item.findtext('guid') or item.findtext('link') or '').strip()
+                    if not link:
+                        continue
+                    if link in seen_urls:
+                        continue
+                    seen_urls.add(link)
+
+                    # Winkel + prijs uit pepper:merchant
+                    merchant_el = item.find('pepper:merchant', NS)
+                    shop_name = 'mydealz'
+                    current_price = None
+                    if merchant_el is not None:
+                        shop_name = merchant_el.get('name', 'mydealz')[:30]
+                        price_str = merchant_el.get('price', '')
+                        current_price = parse_dutch_price(price_str)
+
+                    # China-filter
+                    if any(b in f"{shop_name} {title}".lower() for b in BLOCKED_MERCHANTS):
                         continue
 
-                    name = title_el.inner_text().strip()
-                    href = title_el.get_attribute("href")
-                    if not name or len(name) < 5:
-                        continue
+                    # Originele prijs uit beschrijving
+                    desc_html = item.findtext('description') or ''
+                    original_price = _extract_prices_from_desc(desc_html, current_price)
 
-                    deal_url = href
-                    if deal_url and not deal_url.startswith("http"):
-                        deal_url = f"https://www.mydealz.de{deal_url}"
-
-                    # Externe link
-                    ext_link = article.query_selector('a[rel*="nofollow"], a[href*="goto/deal"]')
-                    if ext_link:
-                        ext_href = ext_link.get_attribute("href")
-                        if ext_href:
-                            deal_url = ext_href if ext_href.startswith("http") else f"https://www.mydealz.de{ext_href}"
-
-                    # Deduplicatie
-                    if deal_url in seen_urls:
-                        continue
-                    seen_urls.add(deal_url)
-
-                    # Winkel
-                    merchant_el = article.query_selector('[class*="merchant"], [class*="cept-merchant"]')
-                    shop_name = "mydealz"
-                    if merchant_el:
-                        shop_name = merchant_el.inner_text().strip()[:30]
-
-                    # China/AliExpress filter
-                    if _is_blocked_merchant(shop_name, name):
-                        blocked_count += 1
-                        continue
-
-                    # Prijzen (slimme extractie)
-                    current_price, original_price = _extract_prices_smart(article)
-
-                    # Temperatuur
-                    temp_el = article.query_selector('[class*="vote-temp"], [class*="voteTemp"]')
-                    temperature = 0
-                    if temp_el:
-                        temp_text = temp_el.inner_text().strip().replace("°", "").replace(",", ".")
-                        try:
-                            temperature = float(temp_text)
-                        except (ValueError, TypeError):
-                            pass
-
+                    # Korting berekenen
                     if current_price and original_price and original_price > current_price:
                         discount = ((original_price - current_price) / original_price) * 100
-                        deals.append({
-                            "product_name": name[:200],
-                            "shop": f"mydealz ({shop_name})",
-                            "current_price": current_price,
-                            "original_price": original_price,
-                            "discount_percent": round(discount, 1),
-                            "url": deal_url,
-                            "_temperature": temperature,
-                            "_country": "DE",
-                        })
+                    else:
+                        pct = _extract_discount_from_title(title)
+                        if pct and pct >= 30 and current_price:
+                            discount = pct
+                            original_price = round(current_price / (1 - pct / 100), 2)
+                        else:
+                            continue
+
+                    if discount < 30:
+                        continue
+
+                    deals.append({
+                        "product_name": title[:200],
+                        "shop": f"mydealz ({shop_name})",
+                        "current_price": current_price,
+                        "original_price": original_price,
+                        "discount_percent": round(discount, 1),
+                        "url": link,
+                        "_country": "DE",
+                    })
 
                 except Exception:
                     continue
 
-            if expired_count:
-                print(f"    ({expired_count} verlopen deals overgeslagen)")
-            if blocked_count:
-                print(f"    ({blocked_count} China/niet-EU deals geblokkeerd)")
-
-            page.close()
-            respectful_delay()
-
         except Exception as e:
-            print(f"[mydealz] Fout bij {url}: {e}")
+            print(f"[mydealz] Fout bij {rss_url}: {e}")
 
+    print(f"[mydealz] Totaal: {len(deals)} bruikbare deals")
     return deals
