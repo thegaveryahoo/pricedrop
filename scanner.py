@@ -12,7 +12,6 @@ import os
 import time
 import json
 from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -261,11 +260,7 @@ def run_scan():
 
         context = _make_context(browser)
 
-        # === STAP 1: Scrape alle shops (met per-scraper timeout van 90s) ===
-        
-        def _scrape_one(scraper_fn, ctx):
-            """Wrapper die scrape() aanroept — draait in aparte thread met timeout."""
-            return scraper_fn.scrape(ctx)
+        # === STAP 1: Scrape alle shops ===
 
         for scraper_name in ACTIVE_SCRAPERS:
             if scraper_name not in SCRAPER_MAP:
@@ -277,15 +272,11 @@ def run_scan():
             
             deals = None
             error = None
-            
-            with ThreadPoolExecutor(max_workers=1) as executor:
-                future = executor.submit(_scrape_one, scraper, context)
-                try:
-                    deals = future.result(timeout=90)
-                except FuturesTimeoutError:
-                    error = f"TIMEOUT na 90s — scraper overgeslagen"
-                except Exception as e:
-                    error = str(e)
+
+            try:
+                deals = scraper.scrape(context)
+            except Exception as e:
+                error = str(e)
             
             if error:
                 print(f"[{scraper_name}] ⚠️ {error}")
